@@ -125,6 +125,9 @@ MonoBehaviour:
   arcDuration: 0.8
   pickupDelay: 0.3
   pickupEffect: {fileID: 0}
+  enableBounceAnimation: 1
+  bounceHeight: 3
+  bounceSpeed: 0.2
 --- !u!96 &8244496745918131446
 TrailRenderer:
   serializedVersion: 3

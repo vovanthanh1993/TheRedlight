@@ -261,23 +261,17 @@ public class PlayerController : MonoBehaviour
                 // Dừng movement ngay lập tức
                 SetIdleAnimation();
                 
-                // Trigger death animation
-                if (playerAnimation != null)
+                // Boss bắn fireball
+                BossController boss = FindObjectOfType<BossController>();
+                if (boss != null)
                 {
-                    playerAnimation.SetDie();
+                    boss.ShootFireballAtPlayer();
+                    Debug.LogWarning("PlayerController: Player di chuyển trong Red Light! Đã bị khóa di chuyển, boss bắn fireball!");
                 }
-                
-                // Nếu đang mang item, cho item bay về vị trí ban đầu
-                if (carriedItem != null)
+                else
                 {
-                    carriedItem.ReturnToOriginalPosition();
-                    carriedItem = null; // Reset carried item
+                    Debug.LogWarning("PlayerController: Không tìm thấy Boss!");
                 }
-                
-                // Chờ death animation xong rồi mới spawn lại
-                StartCoroutine(HandleRedLightDeath());
-                
-                Debug.LogWarning("PlayerController: Player di chuyển trong Red Light! Đã bị phát hiện, chết và sẽ spawn lại.");
             }
         }
         else
@@ -285,6 +279,36 @@ public class PlayerController : MonoBehaviour
             // Reset flag khi chuyển sang Green Light
             isRedLightPenaltyActive = false;
         }
+    }
+    
+    /// <summary>
+    /// Nhận damage từ fireball và chết
+    /// </summary>
+    public void TakeFireballDamage()
+    {
+        // Disable input ngay lập tức để player không thể di chuyển thêm
+        canReceiveInput = false;
+        
+        // Dừng movement ngay lập tức
+        SetIdleAnimation();
+        
+        // Trigger death animation
+        if (playerAnimation != null)
+        {
+            playerAnimation.SetDie();
+        }
+        
+        // Nếu đang mang item, cho item bay về vị trí ban đầu
+        if (carriedItem != null)
+        {
+            carriedItem.ReturnToOriginalPosition();
+            carriedItem = null; // Reset carried item
+        }
+        
+        // Chờ death animation xong rồi mới spawn lại
+        StartCoroutine(HandleRedLightDeath());
+        
+        Debug.LogWarning("PlayerController: Player bị trúng fireball! Chết và sẽ spawn lại.");
     }
     
     /// <summary>
@@ -300,8 +324,36 @@ public class PlayerController : MonoBehaviour
             characterController.enabled = false;
         }
         
-        // Chờ death animation hoàn thành
+        // Trừ mạng trước để kiểm tra xem còn mạng không
+        bool stillHasLives = true;
+        if (HealthPanel.Instance != null)
+        {
+            // Lưu số mạng trước khi trừ
+            int livesBefore = HealthPanel.Instance.GetCurrentLives();
+            
+            // Trừ mạng
+            stillHasLives = HealthPanel.Instance.LoseLife();
+            
+            // Nếu hết mạng, hiển thị lose panel ngay và dừng, không chờ animation
+            if (!stillHasLives)
+            {
+                Debug.LogWarning("PlayerController: Đã hết mạng! Hiển thị lose panel ngay, không chờ death animation.");
+                isRedLightPenaltyActive = false;
+                
+                // Đảm bảo lose panel đã được hiển thị
+                if (UIManager.Instance != null && UIManager.Instance.gamePlayPanel != null)
+                {
+                    UIManager.Instance.gamePlayPanel.ShowLosePanel(true);
+                    Time.timeScale = 0f;
+                }
+                
+                yield break;
+            }
+        }
+        
+        // Chỉ chờ death animation nếu còn mạng
         yield return new WaitForSeconds(3.5f);
+        
         Debug.LogWarning("PlayerController: Death animation hoàn thành, bắt đầu spawn lại...");
 
         // Bật lại CharacterController trước khi spawn
@@ -310,16 +362,59 @@ public class PlayerController : MonoBehaviour
             characterController.enabled = true;
         }
         
-        // Trừ mạng và spawn lại (ReturnToSpawnPoint sẽ tự động disable input và enable lại sau 1s)
-        ReturnToSpawnPoint();
+        // Spawn lại (không cần trừ mạng nữa vì đã trừ ở trên)
+        ReturnToSpawnPointWithoutLosingLife();
         
         // Chờ một chút để đảm bảo spawn hoàn tất
         yield return new WaitForSeconds(0.2f);
         
         // Reset flag để có thể trigger lại lần sau
         isRedLightPenaltyActive = false;
+    }
+    
+    /// <summary>
+    /// Spawn lại tại spawn point mà không trừ mạng (đã trừ ở HandleRedLightDeath)
+    /// </summary>
+    private void ReturnToSpawnPointWithoutLosingLife()
+    {
+        // Đánh dấu đang trong quá trình về spawn để tránh xử lý nhiều lần
+        if (isReturningToSpawn)
+        {
+            return;
+        }
         
-        // Không cần enable input ở đây vì ReturnToSpawnPoint đã xử lý
+        isReturningToSpawn = true;
+        lastSpawnReturnTime = Time.time;
+        
+        // Tắt CharacterController tạm thời để teleport
+        if (characterController != null)
+        {
+            characterController.enabled = false;
+        }
+        
+        // Teleport về spawn point
+        Vector3 targetPosition = spawnPoint != null ? spawnPoint.position : initialSpawnPosition;
+        transform.position = targetPosition;
+        
+        // Bật lại CharacterController
+        if (characterController != null)
+        {
+            characterController.enabled = true;
+        }
+        
+        // Disable input ngay lập tức
+        canReceiveInput = false;
+        
+        // Set idle animation
+        SetIdleAnimation();
+        
+        Debug.Log("Player đã quay về spawn point!");
+        
+        // Chờ 1 giây rồi mới cho phép điều khiển lại
+        StartCoroutine(EnableInputAfterSpawn());
+        
+        // Reset flag sau một khoảng thời gian ngắn để cho phép xử lý lần tiếp theo
+        StartCoroutine(ResetSpawnReturnFlag());
     }
 
     /// <summary>
@@ -485,7 +580,19 @@ public class PlayerController : MonoBehaviour
             if (!stillHasLives)
             {
                 Debug.Log("Player đã hết mạng! Không thể tiếp tục.");
+                
+                // Dừng tất cả coroutines và disable input
+                StopAllCoroutines();
+                canReceiveInput = false;
                 isReturningToSpawn = false; // Reset flag
+                
+                // Đảm bảo lose panel đã được hiển thị
+                if (UIManager.Instance != null && UIManager.Instance.gamePlayPanel != null)
+                {
+                    UIManager.Instance.gamePlayPanel.ShowLosePanel(true);
+                    Time.timeScale = 0f;
+                }
+                
                 return;
             }
         }

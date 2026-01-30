@@ -30,6 +30,13 @@ public class BossController : MonoBehaviour
     [Tooltip("Tên trigger parameter cho animation hit")]
     [SerializeField] private string hitTriggerParameter = "Hit";
     
+    [Header("Fireball Settings")]
+    [Tooltip("Prefab fireball để bắn")]
+    [SerializeField] private GameObject fireballPrefab;
+    
+    [Tooltip("Vị trí pivot để bắn fireball (nếu null sẽ dùng transform.position)")]
+    [SerializeField] private Transform fireballPivot;
+    
     [Header("Debug")]
     [Tooltip("Hiển thị log trong Console")]
     [SerializeField] private bool debugLog = false;
@@ -189,6 +196,46 @@ public class BossController : MonoBehaviour
             {
                 Debug.Log("BossController: Nhận damage, chạy animation hit.");
             }
+        }
+    }
+    
+    /// <summary>
+    /// Bắn fireball đến player khi player di chuyển trong Red Light
+    /// </summary>
+    public void ShootFireballAtPlayer()
+    {
+        if (fireballPrefab == null)
+        {
+            Debug.LogWarning("BossController: Fireball prefab chưa được gán!");
+            return;
+        }
+        
+        if (PlayerController.Instance == null)
+        {
+            Debug.LogWarning("BossController: Không tìm thấy Player!");
+            return;
+        }
+        
+        // Xác định vị trí bắn (pivot hoặc transform.position)
+        Vector3 spawnPosition = fireballPivot != null ? fireballPivot.position : transform.position;
+        
+        // Spawn fireball
+        GameObject fireballObj = Instantiate(fireballPrefab, spawnPosition, Quaternion.identity);
+        Fireball fireball = fireballObj.GetComponent<Fireball>();
+        
+        if (fireball != null)
+        {
+            fireball.Initialize(PlayerController.Instance.transform, spawnPosition);
+            
+            if (debugLog)
+            {
+                Debug.Log("BossController: Bắn fireball đến player!");
+            }
+        }
+        else
+        {
+            Debug.LogWarning("BossController: Fireball prefab không có component Fireball!");
+            Destroy(fireballObj);
         }
     }
     

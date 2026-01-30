@@ -28,18 +28,47 @@ public class BoomItem : MonoBehaviour
     [Tooltip("Effect khi nhặt item")]
     [SerializeField] private GameObject pickupEffect;
     
+    [Header("Bounce Animation")]
+    [Tooltip("Bật/tắt animation nhảy lên xuống")]
+    [SerializeField] private bool enableBounceAnimation = true;
+    
+    [Tooltip("Độ cao nhảy lên (đơn vị)")]
+    [SerializeField] private float bounceHeight = 1.5f;
+    
+    [Tooltip("Tốc độ animation nhảy (chu kỳ/giây)")]
+    [SerializeField] private float bounceSpeed = 1f;
+    
     private bool isCollected = false;
     private bool isFlyingToBoss = false;
     private Transform bossTransform;
     private Collider itemCollider;
+    private TrailRenderer trailRenderer;
+    private Vector3 originalPosition;
+    private Coroutine bounceCoroutine;
     
     private void Start()
     {
         // Lấy components
         itemCollider = GetComponent<Collider>();
+        trailRenderer = GetComponent<TrailRenderer>();
+        
+        // Tắt TrailRenderer ban đầu
+        if (trailRenderer != null)
+        {
+            trailRenderer.enabled = false;
+        }
+        
+        // Lưu vị trí gốc
+        originalPosition = transform.position;
         
         // Tìm boss
         FindBoss();
+        
+        // Bắt đầu animation nhảy lên xuống
+        if (enableBounceAnimation && !isCollected)
+        {
+            bounceCoroutine = StartCoroutine(BounceAnimation());
+        }
     }
     
     /// <summary>
@@ -102,6 +131,13 @@ public class BoomItem : MonoBehaviour
         
         isCollected = true;
         
+        // Dừng animation nhảy
+        if (bounceCoroutine != null)
+        {
+            StopCoroutine(bounceCoroutine);
+            bounceCoroutine = null;
+        }
+        
         // Phát sound khi nhặt
         if (AudioManager.Instance != null)
         {
@@ -112,6 +148,16 @@ public class BoomItem : MonoBehaviour
         if (pickupEffect != null)
         {
             Instantiate(pickupEffect, transform.position, Quaternion.identity);
+        }
+        
+        // Thông báo cho spawner để spawn boom item mới (truyền vị trí vừa nhặt và item này để remove khỏi list)
+        if (BoomItemSpawner.Instance != null)
+        {
+            BoomItemSpawner.Instance.OnBoomItemCollected(transform.position, gameObject);
+        }
+        else
+        {
+            Debug.LogWarning("BoomItem: Không tìm thấy BoomItemSpawner.Instance! Không thể spawn boom item mới.");
         }
         
         // Chuyển collider thành trigger để phát hiện va chạm với boss
@@ -139,6 +185,47 @@ public class BoomItem : MonoBehaviour
     }
     
     /// <summary>
+    /// Animation nhảy lên xuống tại chỗ
+    /// </summary>
+    private IEnumerator BounceAnimation()
+    {
+        while (!isCollected)
+        {
+            float elapsedTime = 0f;
+            float cycleDuration = 1f / bounceSpeed; // Thời gian cho 1 chu kỳ (lên + xuống)
+            
+            // Lên
+            while (elapsedTime < cycleDuration / 2f && !isCollected)
+            {
+                elapsedTime += Time.deltaTime;
+                float t = elapsedTime / (cycleDuration / 2f);
+                
+                // Sử dụng sin để tạo chuyển động mượt
+                float height = Mathf.Sin(t * Mathf.PI) * bounceHeight;
+                transform.position = originalPosition + Vector3.up * height;
+                
+                yield return null;
+            }
+            
+            // Xuống
+            while (elapsedTime < cycleDuration && !isCollected)
+            {
+                elapsedTime += Time.deltaTime;
+                float t = (elapsedTime - cycleDuration / 2f) / (cycleDuration / 2f);
+                
+                // Sử dụng sin để tạo chuyển động mượt
+                float height = Mathf.Sin((1f - t) * Mathf.PI) * bounceHeight;
+                transform.position = originalPosition + Vector3.up * height;
+                
+                yield return null;
+            }
+            
+            // Đảm bảo về đúng vị trí gốc
+            transform.position = originalPosition;
+        }
+    }
+    
+    /// <summary>
     /// Coroutine để bay vào boss theo đường cong
     /// </summary>
     private IEnumerator FlyToBoss()
@@ -147,6 +234,12 @@ public class BoomItem : MonoBehaviour
         yield return new WaitForSeconds(pickupDelay);
         
         isFlyingToBoss = true;
+        
+        // Bật TrailRenderer khi bắt đầu bay vào boss
+        if (trailRenderer != null)
+        {
+            trailRenderer.enabled = true;
+        }
         
         if (bossTransform == null)
             yield break;
@@ -241,10 +334,11 @@ public class BoomItem : MonoBehaviour
             }
         }
         
-        // Spawn hiệu ứng nổ
+        // Spawn hiệu ứng nổ và tự động hủy sau 2 giây
         if (explosionEffect != null)
         {
-            Instantiate(explosionEffect, transform.position, Quaternion.identity);
+            GameObject effect = Instantiate(explosionEffect, transform.position, Quaternion.identity);
+            Destroy(effect, 2f);
         }
         
         AudioManager.Instance.PlaySound("se_explosion");
@@ -261,6 +355,17 @@ public class BoomItem : MonoBehaviour
         isCollected = false;
         isFlyingToBoss = false;
         
+        // Dừng animation nhảy
+        if (bounceCoroutine != null)
+        {
+            StopCoroutine(bounceCoroutine);
+            bounceCoroutine = null;
+        }
+        
+        // Khôi phục vị trí gốc
+        originalPosition = transform.position;
+        transform.position = originalPosition;
+        
         // Bật lại collider
         if (itemCollider != null)
         {
@@ -273,10 +378,22 @@ public class BoomItem : MonoBehaviour
             GetComponent<Renderer>().enabled = true;
         }
         
+        // Tắt TrailRenderer
+        if (trailRenderer != null)
+        {
+            trailRenderer.enabled = false;
+        }
+        
         // Dừng tất cả coroutines
         StopAllCoroutines();
         
         // Tìm lại boss
         FindBoss();
+        
+        // Bắt đầu lại animation nhảy
+        if (enableBounceAnimation)
+        {
+            bounceCoroutine = StartCoroutine(BounceAnimation());
+        }
     }
 }

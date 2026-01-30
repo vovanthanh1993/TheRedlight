@@ -3119,10 +3119,8 @@ MonoBehaviour:
   isDisable: 0
   playerAnimation: {fileID: 6557621794592324433}
   spawnReturnCooldown: 0.5
-  hitAnimationCooldown: 0.5
-  hitControlDisableDuration: 1
-  hitVFXPrefab: {fileID: 1879769179923522, guid: 65932b7368590234d8163da03c2055d8, type: 3}
-  hitVFXSpawnPoint: {fileID: 0}
+  enableRedLightPenalty: 1
+  deathAnimationDuration: 1
   pickupVFXPoint: {fileID: 6519947599978568788}
   healthPickupVFXPrefab: {fileID: 1881552412633134, guid: da7875cab77480d49972b42ca872af40, type: 3}
   speedPickupVFXPrefab: {fileID: 1002530091286178, guid: 2cfd9cf3b1dc4ad489f9d2a7574d2463, type: 3}
@@ -3154,7 +3152,7 @@ CharacterController:
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!95 &6527449171808721876
 Animator:
-  serializedVersion: 7
+  serializedVersion: 5
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -3168,7 +3166,6 @@ Animator:
   m_ApplyRootMotion: 0
   m_LinearVelocityBlending: 0
   m_StabilizeFeet: 0
-  m_AnimatePhysics: 0
   m_WarningMessage: 
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
