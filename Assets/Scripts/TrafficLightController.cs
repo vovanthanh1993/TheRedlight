@@ -42,12 +42,23 @@ public class TrafficLightController : MonoBehaviour
     [Tooltip("Tự động chuyển đổi giữa Green và Red Light")]
     [SerializeField] private bool autoSwitch = true;
     
+    [Header("Scene Light Settings")]
+    [Tooltip("Light component trong scene để thay đổi màu")]
+    [SerializeField] private Light sceneLight;
+    
+    [Tooltip("Màu đèn khi Green Light")]
+    [SerializeField] private Color greenLightColor = Color.white;
+    
+    [Tooltip("Màu đèn khi Red Light")]
+    [SerializeField] private Color redLightColor = Color.red;
+    
     [Header("Debug")]
     [Tooltip("Hiển thị trạng thái light trong Console")]
     [SerializeField] private bool debugLog = true;
 
     private LightState currentState;
     private float stateTimer = 0f;
+    private Color originalLightColor;
     
     public static TrafficLightController Instance { get; private set; }
     
@@ -66,6 +77,12 @@ public class TrafficLightController : MonoBehaviour
 
     private void Start()
     {
+        // Lưu màu gốc của light
+        if (sceneLight != null)
+        {
+            originalLightColor = sceneLight.color;
+        }
+        
         // Khởi tạo trạng thái ban đầu
         currentState = initialState;
         stateTimer = 0f;
@@ -211,6 +228,33 @@ public class TrafficLightController : MonoBehaviour
         
         // Cập nhật traffic light image trong GUI
         UpdateTrafficLightImage();
+        
+        // Cập nhật màu đèn trong scene
+        UpdateSceneLightColor();
+    }
+    
+    /// <summary>
+    /// Cập nhật màu đèn trong scene dựa trên trạng thái hiện tại
+    /// </summary>
+    private void UpdateSceneLightColor()
+    {
+        if (sceneLight == null)
+            return;
+        
+        // Thay đổi màu đèn dựa trên trạng thái
+        if (currentState == LightState.Green)
+        {
+            sceneLight.color = greenLightColor;
+        }
+        else if (currentState == LightState.Red)
+        {
+            sceneLight.color = redLightColor;
+        }
+        
+        if (debugLog)
+        {
+            Debug.Log($"TrafficLightController: Đã thay đổi màu đèn sang {(currentState == LightState.Green ? "xanh" : "đỏ")}");
+        }
     }
     
     /// <summary>
@@ -267,6 +311,17 @@ public class TrafficLightController : MonoBehaviour
             Debug.Log($"TrafficLightController: Reset về trạng thái {currentState}");
         }
     }
+    
+    /// <summary>
+    /// Khôi phục màu đèn về màu gốc
+    /// </summary>
+    public void RestoreOriginalLightColor()
+    {
+        if (sceneLight != null)
+        {
+            sceneLight.color = originalLightColor;
+        }
+    }
 
     /// <summary>
     /// Vẽ Gizmo để hiển thị trạng thái trong Scene view
@@ -279,5 +334,13 @@ public class TrafficLightController : MonoBehaviour
         // Vẽ icon màu xanh hoặc đỏ tùy theo trạng thái
         Gizmos.color = currentState == LightState.Green ? Color.green : Color.red;
         Gizmos.DrawWireSphere(transform.position, 0.5f);
+    }
+    
+    /// <summary>
+    /// Khôi phục màu đèn về màu gốc khi destroy
+    /// </summary>
+    private void OnDestroy()
+    {
+        RestoreOriginalLightColor();
     }
 }

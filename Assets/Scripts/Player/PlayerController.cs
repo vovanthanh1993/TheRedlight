@@ -312,6 +312,89 @@ public class PlayerController : MonoBehaviour
     }
     
     /// <summary>
+    /// Nhận damage từ BoomItem và chết
+    /// </summary>
+    public void TakeBoomDamage()
+    {
+        // Disable input ngay lập tức để player không thể di chuyển thêm
+        canReceiveInput = false;
+        
+        // Dừng movement ngay lập tức
+        SetIdleAnimation();
+        
+        // Trigger death animation
+        if (playerAnimation != null)
+        {
+            playerAnimation.SetDie();
+        }
+        
+        // Nếu đang mang item, cho item bay về vị trí ban đầu
+        if (carriedItem != null)
+        {
+            carriedItem.ReturnToOriginalPosition();
+            carriedItem = null; // Reset carried item
+        }
+        
+        // Chờ death animation xong rồi mới spawn lại
+        StartCoroutine(HandleBoomDeath());
+        
+        Debug.LogWarning("PlayerController: Player chạm vào BoomItem! Chết và sẽ spawn lại.");
+    }
+    
+    /// <summary>
+    /// Xử lý death animation và spawn lại sau khi chết vì BoomItem
+    /// </summary>
+    private System.Collections.IEnumerator HandleBoomDeath()
+    {
+        AudioManager.Instance.PlayExplosion();
+        // Đảm bảo player không di chuyển trong lúc animation chết
+        // Disable CharacterController để player không bị ảnh hưởng bởi gravity hoặc physics
+        if (characterController != null)
+        {
+            characterController.enabled = false;
+        }
+        
+        // Mạng đã được trừ trong BoomItem.Explode(), chỉ cần kiểm tra xem còn mạng không
+        bool stillHasLives = true;
+        if (HealthPanel.Instance != null)
+        {
+            stillHasLives = HealthPanel.Instance.GetCurrentLives() > 0;
+            
+            // Nếu hết mạng, hiển thị lose panel ngay và dừng, không chờ animation
+            if (!stillHasLives)
+            {
+                Debug.LogWarning("PlayerController: Đã hết mạng! Hiển thị lose panel ngay, không chờ death animation.");
+                
+                // Đảm bảo lose panel đã được hiển thị
+                if (UIManager.Instance != null && UIManager.Instance.gamePlayPanel != null)
+                {
+                    UIManager.Instance.gamePlayPanel.ShowLosePanel(true);
+                    Time.timeScale = 0f;
+                }
+                
+                yield break;
+            }
+        }
+        
+        // Chỉ chờ death animation nếu còn mạng
+        yield return new WaitForSeconds(3.5f);
+        
+        Debug.LogWarning("PlayerController: Death animation hoàn thành, bắt đầu spawn lại...");
+
+        // Bật lại CharacterController trước khi spawn
+        if (characterController != null)
+        {
+            characterController.enabled = true;
+        }
+        
+        // Spawn lại (không cần trừ mạng nữa vì đã trừ trong BoomItem)
+        ReturnToSpawnPointWithoutLosingLife();
+        
+        // Chờ một chút để đảm bảo spawn hoàn tất
+        yield return new WaitForSeconds(0.2f);
+    }
+    
+    /// <summary>
     /// Xử lý death animation và spawn lại sau khi chết vì Red Light
     /// </summary>
     private System.Collections.IEnumerator HandleRedLightDeath()

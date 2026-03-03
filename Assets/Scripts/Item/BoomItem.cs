@@ -1,399 +1,114 @@
 using UnityEngine;
-using System.Collections;
 
 /// <summary>
-/// Item Boom - Khi người chơi nhặt sẽ bay vào boss và nổ khi va chạm
+/// BoomItem - Khi player chạm vào sẽ nổ và làm mất 1 mạng
 /// </summary>
 public class BoomItem : MonoBehaviour
 {
-    [Header("Boom Settings")]
-    [Tooltip("Tốc độ bay vào boss")]
-    [SerializeField] private float flySpeed = 10f;
-    
-    [Tooltip("Hiệu ứng nổ khi va chạm với boss")]
+    [Header("Explosion Settings")]
+    [Tooltip("Hiệu ứng nổ khi player chạm vào")]
     [SerializeField] private GameObject explosionEffect;
     
-    [Header("Arc Settings")]
-    [Tooltip("Độ cao tối đa của đường cong bay (so với boss)")]
-    [SerializeField] private float arcHeight = 10f;
-    
-    [Tooltip("Thời gian bay theo đường cong (giây)")]
-    [SerializeField] private float arcDuration = 1f;
-    
-    [Header("Pickup Settings")]
-    [Tooltip("Thời gian delay trước khi bắt đầu bay vào boss (giây)")]
-    [SerializeField] private float pickupDelay = 0.3f;
-    
-    [Header("Visual Settings")]
-    [Tooltip("Effect khi nhặt item")]
-    [SerializeField] private GameObject pickupEffect;
-    
-    [Header("Bounce Animation")]
-    [Tooltip("Bật/tắt animation nhảy lên xuống")]
-    [SerializeField] private bool enableBounceAnimation = true;
-    
-    [Tooltip("Độ cao nhảy lên (đơn vị)")]
-    [SerializeField] private float bounceHeight = 1.5f;
-    
-    [Tooltip("Tốc độ animation nhảy (chu kỳ/giây)")]
-    [SerializeField] private float bounceSpeed = 1f;
-    
-    private bool isCollected = false;
-    private bool isFlyingToBoss = false;
-    private Transform bossTransform;
-    private Collider itemCollider;
-    private TrailRenderer trailRenderer;
-    private Vector3 originalPosition;
-    private Coroutine bounceCoroutine;
-    
-    private void Start()
-    {
-        // Lấy components
-        itemCollider = GetComponent<Collider>();
-        trailRenderer = GetComponent<TrailRenderer>();
-        
-        // Tắt TrailRenderer ban đầu
-        if (trailRenderer != null)
-        {
-            trailRenderer.enabled = false;
-        }
-        
-        // Lưu vị trí gốc
-        originalPosition = transform.position;
-        
-        // Tìm boss
-        FindBoss();
-        
-        // Bắt đầu animation nhảy lên xuống
-        if (enableBounceAnimation && !isCollected)
-        {
-            bounceCoroutine = StartCoroutine(BounceAnimation());
-        }
-    }
+    private bool hasExploded = false;
     
     /// <summary>
-    /// Tìm boss trong scene
-    /// </summary>
-    private void FindBoss()
-    {
-        BossController boss = FindObjectOfType<BossController>();
-        if (boss != null)
-        {
-            bossTransform = boss.transform;
-        }
-        else
-        {
-            Debug.LogWarning("BoomItem: Không tìm thấy Boss trong scene!");
-        }
-    }
-    
-    /// <summary>
-    /// Xử lý va chạm với player hoặc boss
+    /// Xử lý va chạm với player (trigger)
     /// </summary>
     private void OnTriggerEnter(Collider other)
     {
-        // Nếu đang bay vào boss và va chạm với boss
-        if (isFlyingToBoss)
-        {
-            BossController boss = other.GetComponent<BossController>();
-            if (boss != null)
-            {
-                Explode();
-                return;
-            }
-        }
+        if (hasExploded)
+            return;
         
-        // Nếu chưa nhặt và va chạm với player
-        if (!isCollected && other.CompareTag("Player"))
+        // Nếu player chạm vào
+        if (other.CompareTag("Player"))
         {
-            CollectBoomItem();
+            Debug.Log("BoomItem: OnTriggerEnter - Player chạm vào!");
+            TriggerExplosion();
         }
     }
     
     /// <summary>
-    /// Xử lý va chạm vật lý với player (nếu collider không phải trigger)
+    /// Xử lý va chạm vật lý với player (CharacterController)
     /// </summary>
     private void OnCollisionEnter(Collision collision)
     {
-        if (isCollected || !collision.gameObject.CompareTag("Player"))
+        if (hasExploded)
             return;
         
-        CollectBoomItem();
+        // Nếu player chạm vào
+        if (collision.gameObject.CompareTag("Player"))
+        {
+            Debug.Log("BoomItem: OnCollisionEnter - Player chạm vào!");
+            TriggerExplosion();
+        }
     }
     
     /// <summary>
-    /// Xử lý khi player nhặt boom item
+    /// Kích hoạt nổ ngay khi player chạm vào
     /// </summary>
-    private void CollectBoomItem()
+    private void TriggerExplosion()
     {
-        if (isCollected)
+        if (hasExploded)
             return;
         
-        isCollected = true;
+        hasExploded = true;
         
-        // Dừng animation nhảy
-        if (bounceCoroutine != null)
-        {
-            StopCoroutine(bounceCoroutine);
-            bounceCoroutine = null;
-        }
-        
-        // Phát sound khi nhặt
-        if (AudioManager.Instance != null)
-        {
-            AudioManager.Instance.PlayCollectSound();
-        }
-        
-        // Spawn pickup effect
-        if (pickupEffect != null)
-        {
-            Instantiate(pickupEffect, transform.position, Quaternion.identity);
-        }
-        
-        // Thông báo cho spawner để spawn boom item mới (truyền vị trí vừa nhặt và item này để remove khỏi list)
-        if (BoomItemSpawner.Instance != null)
-        {
-            BoomItemSpawner.Instance.OnBoomItemCollected(transform.position, gameObject);
-        }
-        else
-        {
-            Debug.LogWarning("BoomItem: Không tìm thấy BoomItemSpawner.Instance! Không thể spawn boom item mới.");
-        }
-        
-        // Chuyển collider thành trigger để phát hiện va chạm với boss
-        if (itemCollider != null)
-        {
-            itemCollider.isTrigger = true;
-        }
-        
-        // Tìm lại boss nếu chưa có
-        if (bossTransform == null)
-        {
-            FindBoss();
-        }
-        
-        // Bắt đầu bay vào boss sau delay
-        if (bossTransform != null)
-        {
-            StartCoroutine(FlyToBoss());
-        }
-        else
-        {
-            Debug.LogWarning("BoomItem: Không tìm thấy Boss, không thể bay vào!");
-            Destroy(gameObject);
-        }
+        // Nổ ngay lập tức
+        Explode();
     }
     
     /// <summary>
-    /// Animation nhảy lên xuống tại chỗ
-    /// </summary>
-    private IEnumerator BounceAnimation()
-    {
-        while (!isCollected)
-        {
-            float elapsedTime = 0f;
-            float cycleDuration = 1f / bounceSpeed; // Thời gian cho 1 chu kỳ (lên + xuống)
-            
-            // Lên
-            while (elapsedTime < cycleDuration / 2f && !isCollected)
-            {
-                elapsedTime += Time.deltaTime;
-                float t = elapsedTime / (cycleDuration / 2f);
-                
-                // Sử dụng sin để tạo chuyển động mượt
-                float height = Mathf.Sin(t * Mathf.PI) * bounceHeight;
-                transform.position = originalPosition + Vector3.up * height;
-                
-                yield return null;
-            }
-            
-            // Xuống
-            while (elapsedTime < cycleDuration && !isCollected)
-            {
-                elapsedTime += Time.deltaTime;
-                float t = (elapsedTime - cycleDuration / 2f) / (cycleDuration / 2f);
-                
-                // Sử dụng sin để tạo chuyển động mượt
-                float height = Mathf.Sin((1f - t) * Mathf.PI) * bounceHeight;
-                transform.position = originalPosition + Vector3.up * height;
-                
-                yield return null;
-            }
-            
-            // Đảm bảo về đúng vị trí gốc
-            transform.position = originalPosition;
-        }
-    }
-    
-    /// <summary>
-    /// Coroutine để bay vào boss theo đường cong
-    /// </summary>
-    private IEnumerator FlyToBoss()
-    {
-        // Delay trước khi bay
-        yield return new WaitForSeconds(pickupDelay);
-        
-        isFlyingToBoss = true;
-        
-        // Bật TrailRenderer khi bắt đầu bay vào boss
-        if (trailRenderer != null)
-        {
-            trailRenderer.enabled = true;
-        }
-        
-        if (bossTransform == null)
-            yield break;
-        
-        // Bay theo đường cong lên trời rồi rơi xuống boss
-        yield return StartCoroutine(FlyArcToBoss());
-        
-        // Đã đến boss, trigger nổ
-        if (bossTransform != null)
-        {
-            Explode();
-        }
-    }
-    
-    /// <summary>
-    /// Bay theo đường cong parabol lên trời rồi rơi xuống boss
-    /// </summary>
-    private IEnumerator FlyArcToBoss()
-    {
-        if (bossTransform == null)
-            yield break;
-        
-        Vector3 startPosition = transform.position;
-        Vector3 bossPosition = bossTransform.position;
-        
-        // Tính toán điểm cao nhất của đường cong
-        float maxHeight = Mathf.Max(startPosition.y, bossPosition.y) + arcHeight;
-        
-        // Tính toán điểm giữa (trên không trung)
-        Vector3 midPoint = Vector3.Lerp(startPosition, bossPosition, 0.5f);
-        midPoint.y = maxHeight;
-        
-        float elapsedTime = 0f;
-        Vector3 previousPosition = startPosition;
-        
-        // Bay theo đường cong
-        while (elapsedTime < arcDuration && bossTransform != null)
-        {
-            elapsedTime += Time.deltaTime;
-            float t = Mathf.Clamp01(elapsedTime / arcDuration);
-            
-            // Sử dụng quadratic bezier curve để tạo đường cong mượt
-            // P(t) = (1-t)²P₀ + 2(1-t)tP₁ + t²P₂
-            // Trong đó P₀ = start, P₁ = midPoint, P₂ = boss
-            float oneMinusT = 1f - t;
-            Vector3 currentPosition = 
-                oneMinusT * oneMinusT * startPosition + 
-                2f * oneMinusT * t * midPoint + 
-                t * t * bossPosition;
-            
-            transform.position = currentPosition;
-            
-            // Xoay item theo hướng di chuyển
-            if (elapsedTime > 0.01f)
-            {
-                Vector3 moveDirection = (currentPosition - previousPosition).normalized;
-                if (moveDirection != Vector3.zero)
-                {
-                    Quaternion targetRotation = Quaternion.LookRotation(moveDirection);
-                    transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 5f);
-                }
-            }
-            
-            previousPosition = currentPosition;
-            yield return null;
-        }
-        
-        // Đảm bảo đã đến đúng vị trí boss
-        if (bossTransform != null)
-        {
-            transform.position = bossTransform.position;
-        }
-    }
-    
-    /// <summary>
-    /// Nổ khi va chạm với boss
+    /// Nổ và gây damage cho player ngay lập tức
     /// </summary>
     private void Explode()
     {
-        if (isCollected && !isFlyingToBoss)
-            return; // Đã nổ rồi
-        
-        isFlyingToBoss = false;
-        
-        // Gây damage cho boss
-        if (bossTransform != null)
-        {
-            BossController boss = bossTransform.GetComponent<BossController>();
-            if (boss != null)
-            {
-                boss.TakeDamage();
-            }
-        }
-        
-        // Spawn hiệu ứng nổ và tự động hủy sau 2 giây
+        // Spawn hiệu ứng nổ
         if (explosionEffect != null)
         {
             GameObject effect = Instantiate(explosionEffect, transform.position, Quaternion.identity);
             Destroy(effect, 2f);
         }
         
-        AudioManager.Instance.PlaySound("se_explosion");
+        // Phát sound effect nổ
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.PlayExplosion();
+        }
         
-        // Destroy ngay lập tức khi nổ
+        // Gây damage cho player (mất 1 mạng)
+        if (HealthPanel.Instance != null)
+        {
+            bool stillHasLives = HealthPanel.Instance.LoseLife();
+            
+            Debug.LogWarning($"BoomItem: Player chạm vào BoomItem! Đã mất 1 mạng. Số mạng còn lại: {HealthPanel.Instance.GetCurrentLives()}");
+            
+            // Nếu hết mạng, hiển thị lose panel
+            if (!stillHasLives)
+            {
+                Debug.LogWarning("BoomItem: Player đã hết mạng!");
+                
+                if (UIManager.Instance != null && UIManager.Instance.gamePlayPanel != null)
+                {
+                    UIManager.Instance.gamePlayPanel.ShowLosePanel(true);
+                    Time.timeScale = 0f;
+                }
+            }
+            else
+            {
+                // Nếu còn mạng, đưa player về spawn point
+                if (PlayerController.Instance != null)
+                {
+                    PlayerController.Instance.TakeBoomDamage();
+                }
+            }
+        }
+        else
+        {
+            Debug.LogWarning("BoomItem: Không tìm thấy HealthPanel.Instance!");
+        }
+        
+        // Destroy item ngay lập tức khi chạm vào player
         Destroy(gameObject);
     }
     
-    /// <summary>
-    /// Reset item (dùng khi restart level)
-    /// </summary>
-    public void ResetItem()
-    {
-        isCollected = false;
-        isFlyingToBoss = false;
-        
-        // Dừng animation nhảy
-        if (bounceCoroutine != null)
-        {
-            StopCoroutine(bounceCoroutine);
-            bounceCoroutine = null;
-        }
-        
-        // Khôi phục vị trí gốc
-        originalPosition = transform.position;
-        transform.position = originalPosition;
-        
-        // Bật lại collider
-        if (itemCollider != null)
-        {
-            itemCollider.enabled = true;
-        }
-        
-        // Hiện lại renderer
-        if (GetComponent<Renderer>() != null)
-        {
-            GetComponent<Renderer>().enabled = true;
-        }
-        
-        // Tắt TrailRenderer
-        if (trailRenderer != null)
-        {
-            trailRenderer.enabled = false;
-        }
-        
-        // Dừng tất cả coroutines
-        StopAllCoroutines();
-        
-        // Tìm lại boss
-        FindBoss();
-        
-        // Bắt đầu lại animation nhảy
-        if (enableBounceAnimation)
-        {
-            bounceCoroutine = StartCoroutine(BounceAnimation());
-        }
-    }
 }
