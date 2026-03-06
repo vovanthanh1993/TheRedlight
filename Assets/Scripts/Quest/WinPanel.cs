@@ -64,7 +64,7 @@ public class WinPanel : MonoBehaviour
     }
     
     /// <summary>
-    /// Load level tiếp theo sử dụng logic tương tự StartPanel
+    /// Load level tiếp theo - load lại scene dựa trên level
     /// </summary>
     void LoadNextLevel(int level)
     {
@@ -78,40 +78,16 @@ public class WinPanel : MonoBehaviour
         PlayerPrefs.SetInt("CurrentLevel", level);
         PlayerPrefs.Save();
         
-        // Xác định scene dựa trên level (logic từ StartPanel)
-        string sceneName = GetSceneNameForLevel(level);
+        // Xác định scene dựa trên level (Level 1-5: GamePlay1, Level 6-10: GamePlay2, Level 11-15: GamePlay3, ...)
+        string sceneName = LevelSceneHelper.GetSceneNameForLevel(level);
         
-        // Load scene
+        // Load scene (LevelLoader sẽ tự động load level prefab khi scene được load)
         GameCommonUtils.LoadScene(sceneName);
+        
         UIManager.Instance.ShowGamePlayPanel(true);
         Time.timeScale = 1f;
         gameObject.SetActive(false);
         AudioManager.Instance.PlaySelectSound();
-    }
-    
-    /// <summary>
-    /// Xác định tên scene dựa trên level (từ StartPanel)
-    /// </summary>
-    string GetSceneNameForLevel(int level)
-    {
-        // Tính vị trí trong chu kỳ 15 level (0-14)
-        int positionInCycle = (level - 1) % 15;
-        
-        // Level 1-5 (position 0-4): GamePlay1
-        // Level 6-10 (position 5-9): GamePlay2
-        // Level 11-15 (position 10-14): GamePlay3
-        if (positionInCycle < 5)
-        {
-            return "GamePlay1";
-        }
-        else if (positionInCycle < 10)
-        {
-            return "GamePlay2";
-        }
-        else
-        {
-            return "GamePlay3";
-        }
     }
 
     public void Init(int star, int reward)

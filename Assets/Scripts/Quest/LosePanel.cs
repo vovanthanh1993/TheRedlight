@@ -19,8 +19,17 @@ public class LosePanel : MonoBehaviour
             HealthPanel.Instance.ResetHealth();
         }
         
-        string sceneName = SceneManager.GetActiveScene().name;
+        // Lấy level hiện tại và load lại scene tương ứng
+        int currentLevel = 1;
+        if (PlayerPrefs.HasKey("CurrentLevel"))
+        {
+            currentLevel = PlayerPrefs.GetInt("CurrentLevel");
+        }
+        
+        // Xác định scene dựa trên level
+        string sceneName = LevelSceneHelper.GetSceneNameForLevel(currentLevel);
         GameCommonUtils.LoadScene(sceneName);
+        
         gameObject.SetActive(false);
         Time.timeScale = 1f;
         AudioManager.Instance.PlaySelectSound();

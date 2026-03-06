@@ -12,6 +12,11 @@ public static class QuestDataStorage
     private static string QuestFilePath => Path.Combine(Application.persistentDataPath, QuestFileName);
     
     /// <summary>
+    /// Public property để Editor script có thể truy cập
+    /// </summary>
+    public static string GetQuestFilePath() => QuestFilePath;
+    
+    /// <summary>
     /// Load tất cả quest từ JSON file
     /// </summary>
     public static Dictionary<int, QuestData> LoadAllQuests()
@@ -342,6 +347,8 @@ public class QuestDataJSON
     public QuestObjective[] objectives;
     public float timeFor3Stars;
     public float timeFor2Stars;
+    public float timeLimit;
+    public int requiredEnergyItems;
     public int[] rewardList;
     public int stars = 0; // Kết quả sao đạt được (0 = chưa hoàn thành, 1-3 = số sao)
     public bool isLocked = true; // Trạng thái locked (true = bị khóa, false = đã unlock)
@@ -356,6 +363,8 @@ public class QuestDataJSON
         objectives = questData.objectives;
         timeFor3Stars = questData.timeFor3Stars;
         timeFor2Stars = questData.timeFor2Stars;
+        timeLimit = questData.timeLimit;
+        requiredEnergyItems = questData.requiredEnergyItems;
         rewardList = questData.rewardList != null ? questData.rewardList.ToArray() : new int[] { 50, 100, 150 };
         stars = 0; // Mặc định chưa có sao
         isLocked = questId != 1; // Quest đầu tiên không locked, các quest khác locked mặc định
@@ -368,6 +377,8 @@ public class QuestDataJSON
         questData.objectives = objectives;
         questData.timeFor3Stars = timeFor3Stars;
         questData.timeFor2Stars = timeFor2Stars;
+        questData.timeLimit = timeLimit;
+        questData.requiredEnergyItems = requiredEnergyItems;
         questData.rewardList = rewardList != null ? new List<int>(rewardList) : new List<int> { 50, 100, 150 };
         return questData;
     }

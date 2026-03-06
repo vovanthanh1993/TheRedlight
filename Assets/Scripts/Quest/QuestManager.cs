@@ -36,25 +36,34 @@ public class QuestManager : MonoBehaviour
         gameStartTime = Time.time;
         gameElapsedTime = 0f;
 
-        if (currentQuest != null && currentQuest.objectives != null)
+        // Khởi tạo progress (có thể không có objectives nếu chỉ cần EnergyItem)
+        if (currentQuest != null)
         {
             progress.Clear();
             
-            foreach (var obj in currentQuest.objectives)
+            if (currentQuest.objectives != null && currentQuest.objectives.Length > 0)
             {
-                // Khởi tạo progress cho từng loại item
-                progress[obj.itemType] = 0;
+                foreach (var obj in currentQuest.objectives)
+                {
+                    // Khởi tạo progress cho từng loại item
+                    progress[obj.itemType] = 0;
+                }
+                
+                // Khởi tạo objectives panel
+                if (GUIPanel.Instance != null && GUIPanel.Instance.objectivesPanelComponent != null)
+                {
+                    GUIPanel.Instance.objectivesPanelComponent.InitializeObjectives();
+                }
             }
-            
-            // Khởi tạo objectives panel
-            if (GUIPanel.Instance != null && GUIPanel.Instance.objectivesPanelComponent != null)
+            else
             {
-                GUIPanel.Instance.objectivesPanelComponent.InitializeObjectives();
+                // Không có objectives (chỉ cần nhặt EnergyItem)
+                Debug.Log($"QuestManager: Level {currentQuest.questId} chỉ cần nhặt {currentQuest.requiredEnergyItems} EnergyItem");
             }
         }
         else
         {
-            Debug.LogError("QuestManager: currentQuest là null hoặc không có objectives!");
+            Debug.LogError("QuestManager: currentQuest là null!");
         }
         
         // Hiển thị hint panel cho level 1
@@ -98,8 +107,42 @@ public class QuestManager : MonoBehaviour
         if (!questCompleted)
         {
             gameElapsedTime = Time.time - gameStartTime;
+            
+            // Kiểm tra thời gian giới hạn
+            if (currentQuest != null && currentQuest.timeLimit > 0)
+            {
+                // Nếu hết thời gian và quest chưa hoàn thành (chưa trigger với EndTag) thì thua
+                if (gameElapsedTime >= currentQuest.timeLimit)
+                {
+                    // Hết thời gian và chưa trigger với EndTag -> thua
+                    OnTimeLimitReached();
+                    return;
+                }
+            }
         }
-        GUIPanel.Instance.SetTime(GetGameTimeFormatted());
+        
+        if (GUIPanel.Instance != null)
+        {
+            GUIPanel.Instance.SetTime(GetGameTimeFormatted());
+        }
+    }
+    
+    /// <summary>
+    /// Xử lý khi hết thời gian giới hạn
+    /// </summary>
+    private void OnTimeLimitReached()
+    {
+        if (questCompleted)
+            return;
+        
+        Debug.LogWarning($"QuestManager: Hết thời gian giới hạn ({currentQuest.timeLimit}s) và chưa trigger với EndTag!");
+        
+        // Hiển thị lose panel
+        if (UIManager.Instance != null && UIManager.Instance.gamePlayPanel != null)
+        {
+            UIManager.Instance.gamePlayPanel.ShowLosePanel(true);
+            Time.timeScale = 0f;
+        }
     }
 
     /// <summary>
@@ -142,17 +185,26 @@ public class QuestManager : MonoBehaviour
         if (questCompleted)
             return;
 
-        // Kiểm tra tất cả objectives
-        foreach (var obj in currentQuest.objectives)
+        // Kiểm tra nếu có objectives (quest cũ)
+        if (currentQuest.objectives != null && currentQuest.objectives.Length > 0)
         {
-            // Check item objectives
-            if (!progress.ContainsKey(obj.itemType) || progress[obj.itemType] < obj.requiredAmount)
+            foreach (var obj in currentQuest.objectives)
+            {
+                // Check item objectives
+                if (!progress.ContainsKey(obj.itemType) || progress[obj.itemType] < obj.requiredAmount)
+                    return;
+            }
+        }
+        // Nếu không có objectives, kiểm tra EnergyItem (quest mới)
+        else if (currentQuest.requiredEnergyItems > 0)
+        {
+            if (LevelManager.Instance == null || !LevelManager.Instance.HasCollectedEnoughEnergy())
                 return;
         }
 
         questCompleted = true;
 
-        // Tính số sao dựa trên thời gian từ QuestData
+        // Tính số sao dựa trên thời gian hoàn thành
         int stars = CalculateStars();
         int reward = GetRewardByStars(stars);
         
@@ -289,13 +341,27 @@ public class QuestManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Lấy thời gian game đã trôi qua dưới dạng chuỗi định dạng (MM:SS)
+    /// Lấy thời gian còn lại dưới dạng chuỗi định dạng (MM:SS) - Countdown
     /// </summary>
     public string GetGameTimeFormatted()
     {
-        int minutes = Mathf.FloorToInt(gameElapsedTime / 60f);
-        int seconds = Mathf.FloorToInt(gameElapsedTime % 60f);
-        return string.Format("{0:00}:{1:00}", minutes, seconds);
+        // Nếu có timeLimit, hiển thị thời gian còn lại (countdown)
+        if (currentQuest != null && currentQuest.timeLimit > 0)
+        {
+            float remainingTime = currentQuest.timeLimit - gameElapsedTime;
+            remainingTime = Mathf.Max(0f, remainingTime); // Đảm bảo không âm
+            
+            int minutes = Mathf.FloorToInt(remainingTime / 60f);
+            int seconds = Mathf.FloorToInt(remainingTime % 60f);
+            return string.Format("{0:00}:{1:00}", minutes, seconds);
+        }
+        else
+        {
+            // Nếu không có timeLimit, hiển thị thời gian đã trôi qua (tăng dần)
+            int minutes = Mathf.FloorToInt(gameElapsedTime / 60f);
+            int seconds = Mathf.FloorToInt(gameElapsedTime % 60f);
+            return string.Format("{0:00}:{1:00}", minutes, seconds);
+        }
     }
 
     /// <summary>

@@ -541,13 +541,22 @@ public class PlayerController : MonoBehaviour
     #region Collision Detection
 
     /// <summary>
-    /// Xử lý va chạm với trigger (vật thể có tag "end")
+    /// Xử lý va chạm với trigger (vật thể có tag "EndTag")
     /// </summary>
     private void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("EndTag"))
         {
-            ShowVictory();
+            // Chỉ cho qua màn nếu đã nhặt đủ EnergyItem (nếu level có yêu cầu)
+            if (LevelManager.Instance == null || LevelManager.Instance.HasCollectedEnoughEnergy())
+            {
+                ShowVictory();
+            }
+            else
+            {
+                Debug.Log("PlayerController: Chưa nhặt đủ EnergyItem để qua màn!");
+                // TODO: Có thể hiển thị UI thông báo ở đây (popup, text, v.v.)
+            }
         }
         
         // Xử lý checkpoint

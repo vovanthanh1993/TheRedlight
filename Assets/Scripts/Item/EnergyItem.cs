@@ -367,6 +367,12 @@ public class EnergyItem : MonoBehaviour
         {
             AudioManager.Instance.PlayCheckpointSound();
         }
+
+        // Thông báo cho LevelManager là đã nhặt được một EnergyItem
+        if (LevelManager.Instance != null)
+        {
+            LevelManager.Instance.OnEnergyItemArrived();
+        }
         
         // Ẩn renderer trước khi destroy để tạo hiệu ứng biến mất mượt hơn
         Renderer renderer = GetComponent<Renderer>();
