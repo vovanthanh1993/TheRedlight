@@ -176,6 +176,12 @@ public class LevelManager : MonoBehaviour
         {
             PowerBar.Instance.ResetPowerBar();
         }
+        
+        // Reset SpeedSkill nếu có
+        if (PlayerController.Instance != null)
+        {
+            PlayerController.Instance.ResetSpeedSkill();
+        }
     }
 
     #endregion

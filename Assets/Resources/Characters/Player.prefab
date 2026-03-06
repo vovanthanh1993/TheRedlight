@@ -3124,6 +3124,11 @@ MonoBehaviour:
   pickupVFXPoint: {fileID: 6519947599978568788}
   healthPickupVFXPrefab: {fileID: 1881552412633134, guid: da7875cab77480d49972b42ca872af40, type: 3}
   speedPickupVFXPrefab: {fileID: 1002530091286178, guid: 2cfd9cf3b1dc4ad489f9d2a7574d2463, type: 3}
+  speedSkillBoostAmount: 2
+  speedSkillDuration: 5
+  speedSkillCooldown: 60
+  speedSkillActivateEffect: {fileID: 1002530091286178, guid: 2cfd9cf3b1dc4ad489f9d2a7574d2463, type: 3}
+  speedSkillDeactivateEffect: {fileID: 0}
 --- !u!143 &2808108556470702631
 CharacterController:
   m_ObjectHideFlags: 0

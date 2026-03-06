@@ -37,8 +37,12 @@ public class GUIPanel : MonoBehaviour
     }
 
     public void ShowHintPanel(bool isShow) {
-        Time.timeScale = 0f;
         hintPanel.gameObject.SetActive(isShow);
+        // Chỉ pause game khi hiển thị hint, không pause khi ẩn hint
+        if (isShow)
+        {
+            Time.timeScale = 0f;
+        }
     }
 
     public void SetHealthBar(float currentHealth, float maxHealth) {

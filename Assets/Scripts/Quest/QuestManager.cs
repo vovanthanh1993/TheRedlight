@@ -76,12 +76,17 @@ public class QuestManager : MonoBehaviour
     }
     
     /// <summary>
-    /// Hiển thị hint panel cho level 1
+    /// Hiển thị hint panel cho level 1 và pause game
     /// </summary>
     System.Collections.IEnumerator ShowHintForLevel1()
     {
         yield return null; // Đợi một frame để đảm bảo UI đã được khởi tạo
+        
+        // Đảm bảo game được pause khi hiển thị hint
+        Time.timeScale = 0f;
         GUIPanel.Instance.ShowHintPanel(true);
+        
+        Debug.Log("QuestManager: Đã hiển thị hint panel cho level 1 và pause game");
     }
     
     /// <summary>
@@ -114,9 +119,14 @@ public class QuestManager : MonoBehaviour
                 // Nếu hết thời gian và quest chưa hoàn thành (chưa trigger với EndTag) thì thua
                 if (gameElapsedTime >= currentQuest.timeLimit)
                 {
-                    // Hết thời gian và chưa trigger với EndTag -> thua
-                    OnTimeLimitReached();
-                    return;
+                    // Kiểm tra lại questCompleted một lần nữa để tránh race condition
+                    // (nếu player vừa trigger EndTag trong cùng frame này)
+                    if (!questCompleted)
+                    {
+                        // Hết thời gian và chưa trigger với EndTag -> thua
+                        OnTimeLimitReached();
+                        return;
+                    }
                 }
             }
         }
@@ -132,10 +142,48 @@ public class QuestManager : MonoBehaviour
     /// </summary>
     private void OnTimeLimitReached()
     {
+        // Kiểm tra lại một lần nữa để tránh race condition
+        // (nếu player vừa trigger EndTag và đủ điều kiện thắng trong cùng frame)
         if (questCompleted)
             return;
         
-        Debug.LogWarning($"QuestManager: Hết thời gian giới hạn ({currentQuest.timeLimit}s) và chưa trigger với EndTag!");
+        // Kiểm tra xem player có đủ điều kiện thắng không (đã trigger EndTag và đủ EnergyItem)
+        // Nếu có thì ưu tiên thắng, không thua
+        bool canWin = false;
+        if (currentQuest.objectives == null || currentQuest.objectives.Length == 0)
+        {
+            // Quest mới: chỉ cần đủ EnergyItem
+            if (LevelManager.Instance != null && LevelManager.Instance.HasCollectedEnoughEnergy())
+            {
+                canWin = true;
+            }
+        }
+        else
+        {
+            // Quest cũ: kiểm tra objectives
+            bool allObjectivesCompleted = true;
+            foreach (var obj in currentQuest.objectives)
+            {
+                if (!progress.ContainsKey(obj.itemType) || progress[obj.itemType] < obj.requiredAmount)
+                {
+                    allObjectivesCompleted = false;
+                    break;
+                }
+            }
+            canWin = allObjectivesCompleted;
+        }
+        
+        // Nếu đủ điều kiện thắng, không thua (có thể player đã trigger EndTag trong cùng frame)
+        if (canWin)
+        {
+            Debug.Log("QuestManager: Hết thời gian nhưng player đã đủ điều kiện thắng, chờ trigger EndTag...");
+            return;
+        }
+        
+        // Set questCompleted = true ngay để tránh gọi nhiều lần
+        questCompleted = true;
+        
+        Debug.LogWarning($"QuestManager: Hết thời gian giới hạn ({currentQuest.timeLimit}s) và chưa đủ điều kiện thắng!");
         
         // Hiển thị lose panel
         if (UIManager.Instance != null && UIManager.Instance.gamePlayPanel != null)
@@ -224,25 +272,45 @@ public class QuestManager : MonoBehaviour
     
     /// <summary>
     /// Kiểm tra và hoàn thành quest khi player đến end gate
-    /// Chỉ hoàn thành nếu đã collect đủ tất cả animals
+    /// Chỉ hoàn thành nếu đã collect đủ tất cả items hoặc đủ EnergyItem
     /// </summary>
     public void CheckAndCompleteQuest()
     {
         if (questCompleted)
             return;
         
-        // Kiểm tra xem đã collect đủ tất cả items chưa
-        bool allObjectivesCompleted = true;
-        foreach (var obj in currentQuest.objectives)
+        bool canComplete = false;
+        
+        // Kiểm tra nếu có objectives (quest cũ)
+        if (currentQuest.objectives != null && currentQuest.objectives.Length > 0)
         {
-            if (!progress.ContainsKey(obj.itemType) || progress[obj.itemType] < obj.requiredAmount)
+            // Kiểm tra xem đã collect đủ tất cả items chưa
+            bool allObjectivesCompleted = true;
+            foreach (var obj in currentQuest.objectives)
             {
-                allObjectivesCompleted = false;
-                break;
+                if (!progress.ContainsKey(obj.itemType) || progress[obj.itemType] < obj.requiredAmount)
+                {
+                    allObjectivesCompleted = false;
+                    break;
+                }
+            }
+            canComplete = allObjectivesCompleted;
+        }
+        // Nếu không có objectives, kiểm tra EnergyItem (quest mới)
+        else if (currentQuest.requiredEnergyItems > 0)
+        {
+            if (LevelManager.Instance != null && LevelManager.Instance.HasCollectedEnoughEnergy())
+            {
+                canComplete = true;
             }
         }
+        else
+        {
+            // Không có yêu cầu gì, cho phép hoàn thành
+            canComplete = true;
+        }
         
-        if (allObjectivesCompleted)
+        if (canComplete)
         {
             // Đã collect đủ, hoàn thành quest
             CheckQuestComplete();
@@ -250,7 +318,7 @@ public class QuestManager : MonoBehaviour
         else
         {
             // Chưa đủ, hiển thị thông báo
-            Debug.Log("Chưa collect đủ items! Vui lòng collect đủ trước khi đến endgate.");
+            Debug.Log("Chưa collect đủ items hoặc EnergyItem! Vui lòng collect đủ trước khi đến endgate.");
             // Có thể hiển thị UI thông báo ở đây nếu cần
         }
     }

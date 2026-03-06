@@ -64,6 +64,32 @@ public class PlayerController : MonoBehaviour
     [Tooltip("VFX effect khi nhặt Speed Item")]
     [SerializeField] private GameObject speedPickupVFXPrefab;
 
+    [Header("Speed Skill Settings")]
+    [Tooltip("Tốc độ tăng thêm khi kích hoạt skill")]
+    [SerializeField] private float speedSkillBoostAmount = 2f;
+
+    [Tooltip("Thời gian skill hoạt động (giây)")]
+    [SerializeField] private float speedSkillDuration = 5f;
+
+    [Tooltip("Thời gian cooldown (giây)")]
+    [SerializeField] private float speedSkillCooldown = 60f;
+
+    [Tooltip("Effect khi kích hoạt skill")]
+    [SerializeField] private GameObject speedSkillActivateEffect;
+
+    [Tooltip("Effect khi skill hết hạn")]
+    [SerializeField] private GameObject speedSkillDeactivateEffect;
+
+    // Speed Skill state
+    private bool isSpeedSkillActive = false;
+    private bool isSpeedSkillOnCooldown = false;
+    private float speedSkillCooldownTimer = 0f;
+    private float speedSkillTimer = 0f;
+
+    // UI Callbacks
+    public System.Action<float> OnSpeedSkillCooldownChanged; // (cooldownProgress 0-1)
+    public System.Action<bool> OnSpeedSkillStateChanged; // (isActive)
+
     private void Awake()
     {
         if (Instance != null && Instance != this)
@@ -158,6 +184,7 @@ public class PlayerController : MonoBehaviour
         }
 
         HandleInput();
+        UpdateSpeedSkill();
     }
 
     private void LateUpdate()
@@ -903,6 +930,215 @@ public class PlayerController : MonoBehaviour
         isSpeedBoosted = false;
         
         Debug.Log($"Speed Boost hết hạn! Tốc độ về: {baseMoveSpeed}");
+    }
+
+    #endregion
+
+    #region Speed Skill
+
+    /// <summary>
+    /// Cập nhật speed skill (cooldown và timer)
+    /// </summary>
+    private void UpdateSpeedSkill()
+    {
+        // Cập nhật cooldown timer
+        if (isSpeedSkillOnCooldown)
+        {
+            speedSkillCooldownTimer -= Time.deltaTime;
+            if (speedSkillCooldownTimer <= 0f)
+            {
+                speedSkillCooldownTimer = 0f;
+                isSpeedSkillOnCooldown = false;
+                OnSpeedSkillCooldownChanged?.Invoke(0f);
+                Debug.Log("PlayerController: Speed Skill cooldown đã hết, có thể sử dụng!");
+            }
+            else
+            {
+                float cooldownProgress = 1f - (speedSkillCooldownTimer / speedSkillCooldown);
+                OnSpeedSkillCooldownChanged?.Invoke(cooldownProgress);
+            }
+        }
+
+        // Cập nhật skill timer
+        if (isSpeedSkillActive)
+        {
+            speedSkillTimer -= Time.deltaTime;
+            if (speedSkillTimer <= 0f)
+            {
+                DeactivateSpeedSkill();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Thử kích hoạt speed skill (kiểm tra cooldown trước)
+    /// </summary>
+    public bool TryActivateSpeedSkill()
+    {
+        // Kiểm tra cooldown
+        if (isSpeedSkillOnCooldown)
+        {
+            Debug.Log($"PlayerController: Speed Skill đang trong cooldown! Còn lại: {speedSkillCooldownTimer:F1}s");
+            return false;
+        }
+
+        // Kiểm tra nếu đang disable
+        if (isDisable || !canReceiveInput)
+        {
+            Debug.LogWarning("PlayerController: Không thể kích hoạt skill khi player đang disable!");
+            return false;
+        }
+
+        // Kích hoạt skill
+        ActivateSpeedSkill();
+        return true;
+    }
+
+    /// <summary>
+    /// Kích hoạt speed skill
+    /// </summary>
+    private void ActivateSpeedSkill()
+    {
+        if (isSpeedSkillActive)
+        {
+            Debug.LogWarning("PlayerController: Speed Skill đang hoạt động, không thể kích hoạt lại!");
+            return;
+        }
+
+        isSpeedSkillActive = true;
+        speedSkillTimer = speedSkillDuration;
+
+        // Bắt đầu cooldown ngay khi kích hoạt skill
+        isSpeedSkillOnCooldown = true;
+        speedSkillCooldownTimer = speedSkillCooldown;
+        OnSpeedSkillCooldownChanged?.Invoke(0f); // Bắt đầu từ 0 (fillAmount = 1)
+
+        // Kích hoạt speed boost
+        ActivateSpeedBoost(speedSkillBoostAmount, speedSkillDuration);
+
+        // Spawn effect tại pickupVFXPoint
+        if (speedSkillActivateEffect != null)
+        {
+            Vector3 spawnPosition = transform.position;
+            Transform parentTransform = null;
+            
+            if (pickupVFXPoint != null)
+            {
+                spawnPosition = pickupVFXPoint.position;
+                parentTransform = pickupVFXPoint;
+            }
+            
+            // Spawn VFX và set làm con của pickupVFXPoint
+            GameObject vfx = Instantiate(speedSkillActivateEffect, spawnPosition, Quaternion.identity, parentTransform);
+            
+            // Tự động destroy VFX sau 5 giây (nếu VFX không tự destroy)
+            Destroy(vfx, 5f);
+        }
+
+        OnSpeedSkillStateChanged?.Invoke(true);
+        Debug.Log($"PlayerController: Speed Skill đã kích hoạt! Tăng tốc {speedSkillBoostAmount} trong {speedSkillDuration}s, Cooldown: {speedSkillCooldown}s");
+    }
+
+    /// <summary>
+    /// Tắt speed skill (được gọi tự động khi hết thời gian)
+    /// </summary>
+    private void DeactivateSpeedSkill()
+    {
+        if (!isSpeedSkillActive)
+            return;
+
+        isSpeedSkillActive = false;
+        speedSkillTimer = 0f;
+
+        // Cooldown đã bắt đầu từ khi kích hoạt skill, không cần bắt đầu lại
+        // Chỉ spawn effect khi skill hết hạn tại pickupVFXPoint
+        if (speedSkillDeactivateEffect != null)
+        {
+            Vector3 spawnPosition = transform.position;
+            Transform parentTransform = null;
+            
+            if (pickupVFXPoint != null)
+            {
+                spawnPosition = pickupVFXPoint.position;
+                parentTransform = pickupVFXPoint;
+            }
+            
+            // Spawn VFX và set làm con của pickupVFXPoint
+            GameObject vfx = Instantiate(speedSkillDeactivateEffect, spawnPosition, Quaternion.identity, parentTransform);
+            
+            // Tự động destroy VFX sau 5 giây (nếu VFX không tự destroy)
+            Destroy(vfx, 5f);
+        }
+
+        OnSpeedSkillStateChanged?.Invoke(false);
+        Debug.Log($"PlayerController: Speed Skill đã hết hạn! Cooldown đang tiếp tục...");
+    }
+
+    /// <summary>
+    /// Lấy thời gian cooldown còn lại (giây)
+    /// </summary>
+    public float GetSpeedSkillCooldownRemaining()
+    {
+        return isSpeedSkillOnCooldown ? speedSkillCooldownTimer : 0f;
+    }
+
+    /// <summary>
+    /// Lấy tiến độ cooldown (0-1)
+    /// </summary>
+    public float GetSpeedSkillCooldownProgress()
+    {
+        if (!isSpeedSkillOnCooldown)
+            return 0f;
+        return 1f - (speedSkillCooldownTimer / speedSkillCooldown);
+    }
+
+    /// <summary>
+    /// Kiểm tra skill có đang hoạt động không
+    /// </summary>
+    public bool IsSpeedSkillActive()
+    {
+        return isSpeedSkillActive;
+    }
+
+    /// <summary>
+    /// Lấy tiến độ skill timer (0-1), 1 = vừa kích hoạt, 0 = hết thời gian
+    /// </summary>
+    public float GetSpeedSkillTimerProgress()
+    {
+        if (!isSpeedSkillActive || speedSkillDuration <= 0f)
+            return 0f;
+        return speedSkillTimer / speedSkillDuration;
+    }
+
+    /// <summary>
+    /// Kiểm tra skill có đang trong cooldown không
+    /// </summary>
+    public bool IsSpeedSkillOnCooldown()
+    {
+        return isSpeedSkillOnCooldown;
+    }
+
+    /// <summary>
+    /// Reset speed skill (dùng khi bắt đầu level mới)
+    /// </summary>
+    public void ResetSpeedSkill()
+    {
+        isSpeedSkillActive = false;
+        isSpeedSkillOnCooldown = false;
+        speedSkillCooldownTimer = 0f;
+        speedSkillTimer = 0f;
+        
+        // Dừng speed boost nếu đang active
+        if (isSpeedBoosted)
+        {
+            StopCoroutine("SpeedBoostCoroutine");
+            moveSpeed = baseMoveSpeed;
+            isSpeedBoosted = false;
+        }
+        
+        OnSpeedSkillStateChanged?.Invoke(false);
+        OnSpeedSkillCooldownChanged?.Invoke(0f);
+        Debug.Log("PlayerController: Speed Skill đã được reset!");
     }
 
     #endregion
