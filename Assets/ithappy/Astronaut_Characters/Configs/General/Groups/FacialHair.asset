@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7781dc1b11e340469965c5026ab4f9e8, type: 3}
+  m_Name: FacialHair
+  m_EditorClassIdentifier: 
+  Type: 2
+  BodyType: 0
+  Gender: 0
+  Variants:
+  - {fileID: 919132149155446097, guid: 91bfc33f3ba8e3445b4bac9497ba4ad2, type: 3}
+  - {fileID: 919132149155446097, guid: 2b372e1a44a9bc14e83b8307b15e6684, type: 3}
+  - {fileID: 919132149155446097, guid: dedf1364add253147a4db1b662c80e05, type: 3}
+  - {fileID: 919132149155446097, guid: 56cc7e3ef9e2e7849be55b0acb489b5d, type: 3}
+  - {fileID: 919132149155446097, guid: af33230f194143b4786c465495f2461d, type: 3}
+  - {fileID: 919132149155446097, guid: 6af7668280803c440a6ff1166bd6bf51, type: 3}
+  - {fileID: 919132149155446097, guid: 83fd6948529685d40bfb11b83dcf08c5, type: 3}
+  - {fileID: 919132149155446097, guid: 09d906aee084a564eb47fa313ae94b0e, type: 3}
+  - {fileID: 919132149155446097, guid: 20d573c386068134e8a4f0dd3f485f58, type: 3}
+  - {fileID: 919132149155446097, guid: e8ae9a030b254ea4f950504f5894a154, type: 3}
+  - {fileID: 919132149155446097, guid: b9528ae3b7eaaf140862459749d2549c, type: 3}
+  - {fileID: 919132149155446097, guid: 1111f7cb6a5cf3e4e80ff2c8f04e698e, type: 3}
+  - {fileID: 919132149155446097, guid: 034f52a918d2d45499fc9c4280c342c9, type: 3}
+  - {fileID: 919132149155446097, guid: b7426306f804fc149874c605c5bbef86, type: 3}
+  - {fileID: 919132149155446097, guid: c35f26f987ca9ac4c9961ba1b6669f80, type: 3}
+  - {fileID: 919132149155446097, guid: f25532b9ac02d064886eda77101904cf, type: 3}

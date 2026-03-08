@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7991692f014a47bd8f85ec21471bdc8e, type: 3}
+  m_Name: FullBodyEntry_002
+  m_EditorClassIdentifier: 
+  BodyType: 0
+  Gender: 0
+  Slots:
+  - {fileID: 919132149155446097, guid: 345383cc147ed974295288b6f3f1508f, type: 3}
+  - {fileID: 919132149155446097, guid: c553db8151802f44ab6dc5e0cf5f6d4a, type: 3}
+  - {fileID: 919132149155446097, guid: 2c2f17f2d78e615438b67279c06f5de6, type: 3}
+  - {fileID: 919132149155446097, guid: 1dde080ea4d2c9949a2dc9b111b82f69, type: 3}

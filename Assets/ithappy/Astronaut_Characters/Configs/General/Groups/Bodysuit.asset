@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7781dc1b11e340469965c5026ab4f9e8, type: 3}
+  m_Name: Bodysuit
+  m_EditorClassIdentifier: 
+  Type: 13
+  BodyType: 0
+  Gender: 0
+  Variants:
+  - {fileID: 919132149155446097, guid: 7c7ab0b86eb446d4a969e71bb4cd8725, type: 3}
+  - {fileID: 919132149155446097, guid: d35c13adab081ec4eb153bca007d0ce8, type: 3}
+  - {fileID: 919132149155446097, guid: 829d26d794c6fb547b62e86779e60a52, type: 3}
+  - {fileID: 919132149155446097, guid: a3e1af440913aa445bd0609718f5bbc0, type: 3}
+  - {fileID: 919132149155446097, guid: 2280e5eb3bae6704ebf98cfa0a47dff6, type: 3}
+  - {fileID: 919132149155446097, guid: 9fd64ebebb9602649a33922543be240b, type: 3}
+  - {fileID: 919132149155446097, guid: 8d68291820e5f6c479156118dbb3ab1c, type: 3}
+  - {fileID: 919132149155446097, guid: b0b36c020769c3f40adedd9698958ea9, type: 3}
+  - {fileID: 919132149155446097, guid: fe26cf391f0554442b31f1ced70cbcdf, type: 3}
+  - {fileID: 919132149155446097, guid: 0a2b14c044b8caf40968556ea6d92d50, type: 3}

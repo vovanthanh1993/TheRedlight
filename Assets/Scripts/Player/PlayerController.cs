@@ -74,12 +74,6 @@ public class PlayerController : MonoBehaviour
     [Tooltip("Thời gian cooldown (giây)")]
     [SerializeField] private float speedSkillCooldown = 60f;
 
-    [Tooltip("Effect khi kích hoạt skill")]
-    [SerializeField] private GameObject speedSkillActivateEffect;
-
-    [Tooltip("Effect khi skill hết hạn")]
-    [SerializeField] private GameObject speedSkillDeactivateEffect;
-
     // Speed Skill state
     private bool isSpeedSkillActive = false;
     private bool isSpeedSkillOnCooldown = false;
@@ -1016,8 +1010,8 @@ public class PlayerController : MonoBehaviour
         // Kích hoạt speed boost
         ActivateSpeedBoost(speedSkillBoostAmount, speedSkillDuration);
 
-        // Spawn effect tại pickupVFXPoint
-        if (speedSkillActivateEffect != null)
+        // Spawn effect tại pickupVFXPoint (dùng speedPickupVFXPrefab)
+        if (speedPickupVFXPrefab != null)
         {
             Vector3 spawnPosition = transform.position;
             Transform parentTransform = null;
@@ -1029,10 +1023,16 @@ public class PlayerController : MonoBehaviour
             }
             
             // Spawn VFX và set làm con của pickupVFXPoint
-            GameObject vfx = Instantiate(speedSkillActivateEffect, spawnPosition, Quaternion.identity, parentTransform);
+            GameObject vfx = Instantiate(speedPickupVFXPrefab, spawnPosition, Quaternion.identity, parentTransform);
             
             // Tự động destroy VFX sau 5 giây (nếu VFX không tự destroy)
             Destroy(vfx, 5f);
+        }
+
+        // Phát âm thanh tương tự lúc nhặt speed item
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.PlaySpeedSound();
         }
 
         OnSpeedSkillStateChanged?.Invoke(true);
@@ -1051,24 +1051,6 @@ public class PlayerController : MonoBehaviour
         speedSkillTimer = 0f;
 
         // Cooldown đã bắt đầu từ khi kích hoạt skill, không cần bắt đầu lại
-        // Chỉ spawn effect khi skill hết hạn tại pickupVFXPoint
-        if (speedSkillDeactivateEffect != null)
-        {
-            Vector3 spawnPosition = transform.position;
-            Transform parentTransform = null;
-            
-            if (pickupVFXPoint != null)
-            {
-                spawnPosition = pickupVFXPoint.position;
-                parentTransform = pickupVFXPoint;
-            }
-            
-            // Spawn VFX và set làm con của pickupVFXPoint
-            GameObject vfx = Instantiate(speedSkillDeactivateEffect, spawnPosition, Quaternion.identity, parentTransform);
-            
-            // Tự động destroy VFX sau 5 giây (nếu VFX không tự destroy)
-            Destroy(vfx, 5f);
-        }
 
         OnSpeedSkillStateChanged?.Invoke(false);
         Debug.Log($"PlayerController: Speed Skill đã hết hạn! Cooldown đang tiếp tục...");

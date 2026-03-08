@@ -1,243 +1,272 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
+using CharacterCustomizationTool.Editor.Character;
+using CharacterCustomizationTool.Editor.Enums;
+using CharacterCustomizationTool.Editor.Randomizer;
+using CharacterCustomizationTool.FaceManagement;
+using Controller;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
-using Object = UnityEngine.Object;
-using Random = UnityEngine.Random;
 
-namespace CharacterCustomization
+namespace CharacterCustomizationTool.Editor
 {
     public class CharacterCustomizationWindow : EditorWindow
     {
-        private readonly List<List<SavedPart>> _savedCombinations = new List<List<SavedPart>>();
-        private readonly List<PartType> _partsOrder = new List<PartType>()
-        {
-            PartType.Hair,
-            PartType.Glasses,
-            PartType.Outerwear,
-            PartType.Hat,
-            PartType.Body,
-            PartType.Pants,
-            PartType.Mustache,
-            PartType.Glove,
-            PartType.Shoe,
-            PartType.Eyebrow,
-            PartType.Backpack,
-            PartType.Full,
-        };
+        private const string PreviewLayerName = "Character Preview";
+        private const int Width = 100;
+        private const int SpaceSize = 5;
 
-        private PartsEditor _partsEditor;
-        private Transform _cameraPivot;
+        private CustomizableCharacter _customizableCharacter;
+        private SlotsEditor _slotsEditor;
         private Camera _camera;
+        private int _previewLayer;
         private RenderTexture _renderTexture;
-        private List<Part> _parts;
-        private Material _material;
-        private Material _glassMaterial;
-        private Material _emissionMaterial;
-        private string _prefabPath;
+        private string _prefabName;
 
-        private Material Material
-        {
-            get
-            {
-                _material = _material ? _material : AssetDatabase.LoadAssetAtPath<Material>(AssetsPath.MainMaterial);
-
-                return _material;
-            }
-        }
-
-        private Material GlassMaterial
-        {
-            get
-            {
-                _glassMaterial = _glassMaterial ? _glassMaterial : AssetDatabase.LoadAssetAtPath<Material>(AssetsPath.GlassMaterial);
-
-                return _glassMaterial;
-            }
-        }
-
-        private Material EmissionMaterial
-        {
-            get
-            {
-                _emissionMaterial = _emissionMaterial ? _emissionMaterial : AssetDatabase.LoadAssetAtPath<Material>(AssetsPath.EmissionMaterial);
-
-                return _emissionMaterial;
-            }
-        }
-
-        private IEnumerable<Part> Parts => _parts ??= LoadParts().ToList();
-
-        [MenuItem("Tools/Character Customization")]
+        [MenuItem("Tools/Character Customization %#&e", priority = 0)]
         private static void Init()
         {
-            FindRoot();
+            ToolConfig.Reload();
             var window = GetWindow<CharacterCustomizationWindow>("Character Customization");
-            window.minSize = new Vector2(975, 720);
             window.Show();
+
+            GeneratorSettings.ToDefault();
+            window._customizableCharacter.Randomize();
+            window._customizableCharacter.SaveCombination();
         }
 
         private void OnEnable()
         {
-            _partsEditor = new PartsEditor();
+            _customizableCharacter = new CustomizableCharacter(ToolConfig.BodyTypeEntries);
+            _slotsEditor = new SlotsEditor();
+
+            LayerMaskUtility.CreateLayer(PreviewLayerName);
+            _previewLayer = LayerMask.NameToLayer(PreviewLayerName);
         }
 
         private void OnGUI()
         {
-            var rect = new Rect(10, 10, 300, 300);
-
+            minSize = new Vector2(1070, 750);
             CreateRenderTexture();
             InitializeCamera();
-            DrawMesh();
-            _partsEditor.OnGUI(new Rect(320, 10, position.width - 330, position.height), Parts);
+            DrawCharacter();
 
-            GUI.DrawTexture(rect, _renderTexture, ScaleMode.StretchToFill, false);
+            const int borderSize = 15;
 
-            GUI.Label(new Rect(10, 320, 100, 25), "Prefab folder:");
-            GUI.Label(new Rect(10, 345, 350, 25), AssetsPath.SavedCharacters);
-            _prefabPath = GUI.TextField(new Rect(10, 372, 300, 20), _prefabPath);
-
-            var saveButtonRect = new Rect(10, 400, 300, 40);
-            if (GUI.Button(saveButtonRect, "Save Prefab"))
+            using (new GUILayout.AreaScope(new Rect(borderSize, borderSize, position.width - borderSize * 2, position.height - borderSize * 2), GUIContent.none, EditorStyles.helpBox))
             {
-                SavePrefab();
-            }
-
-            var randomizeButtonRect = new Rect(85, 450, 150, 30);
-            if (GUI.Button(randomizeButtonRect, "Randomize"))
-            {
-                Randomize();
-            }
-
-            var isZero = _savedCombinations.Count == 0;
-            var isSame = false;
-            var lessThenTwo = false;
-
-            if (!isZero)
-            {
-                isSame = IsSame();
-                lessThenTwo = _savedCombinations.Count < 2;
-            }
-
-            using (new EditorGUI.DisabledScope(isZero || (isSame && lessThenTwo)))
-            {
-                var lastButtonRect = new Rect(240, 450, 50, 30);
-                if (GUI.Button(lastButtonRect, "Last"))
+                using (new GUILayout.HorizontalScope())
                 {
-                    Last();
+                    DrawSetUpPanel();
+                    _slotsEditor.DrawSlots(_customizableCharacter);
                 }
+            }
+        }
+
+        private void DrawSetUpPanel()
+        {
+            using (new GUILayout.VerticalScope(GUILayout.Width(300)))
+            {
+                // Draw character
+                using (new GUILayout.VerticalScope(EditorStyles.helpBox))
+                {
+                    var currentActiveRT = RenderTexture.active;
+                    RenderTexture.active = _renderTexture;
+                    var newTexture2D = new Texture2D(_renderTexture.width, _renderTexture.height, TextureFormat.RGBA32, false);
+                    newTexture2D.ReadPixels(new Rect(0, 0, _renderTexture.width, _renderTexture.height), 0, 0);
+                    newTexture2D.Apply();
+                    RenderTexture.active = currentActiveRT;
+
+                    var style = new GUIStyle();
+                    style.normal.background = newTexture2D;
+
+                    GUILayout.Box(GUIContent.none, style, GUILayout.Width(300), GUILayout.Height(300));
+                }
+
+                GUILayout.Space(SpaceSize);
+
+                // Draw save options
+                using (new GUILayout.VerticalScope(EditorStyles.helpBox))
+                {
+                    GUILayout.Label("Prefab folder:");
+                    GUILayout.Label(ToolConfig.SavedCharacters);
+
+                    GUILayout.Label("Name:");
+                    _prefabName = GUILayout.TextField(_prefabName);
+                }
+
+                GUILayout.Space(SpaceSize);
+
+                // Draw settings
+                using (new GUILayout.VerticalScope(EditorStyles.helpBox))
+                {
+                    using (new GUILayout.VerticalScope(EditorStyles.helpBox))
+                    {
+                        using (new GUILayout.HorizontalScope(EditorStyles.helpBox))
+                        {
+                            GUILayout.Label("Style:", GUILayout.Width(50));
+                            GUILayout.FlexibleSpace();
+
+                            DrawEva();
+                            DrawBase();
+
+                            GUILayout.FlexibleSpace();
+
+                            using (new EditorGUI.DisabledScope(GeneratorSettings.IsEva && GeneratorSettings.IsBase))
+                            {
+                                if (GUILayout.Button("Select All", GUILayout.Width(Width * .7f)))
+                                {
+                                    GeneratorSettings.ToDefault();
+                                }
+                            }
+                        }
+
+                        GUILayout.Space(SpaceSize);
+
+                        GeneratorSettings.StandardFace = GUILayout.Toggle(GeneratorSettings.StandardFace, "Standard Face", GUILayout.Width(Width));
+                    }
+
+                    GUILayout.Space(SpaceSize);
+
+                    // Draw buttons
+                    if (GUILayout.Button("Save Prefab"))
+                    {
+                        SavePrefab();
+                    }
+
+                    using (new EditorGUI.DisabledScope(GeneratorSettings.BodyTypes.Count == 0 || GeneratorSettings.Genders.Count == 0))
+                    {
+                        if (GUILayout.Button("Randomize"))
+                        {
+                            _customizableCharacter.Randomize();
+                            _customizableCharacter.SaveCombination();
+                        }
+                    }
+
+                    using (new EditorGUI.DisabledScope(!_customizableCharacter.HasHistory))
+                    {
+                        if (GUILayout.Button("Last"))
+                        {
+                            _customizableCharacter.LastCombination();
+                            _customizableCharacter.SaveCombination();
+                        }
+                    }
+                }
+            }
+        }
+
+        private bool _evaState = true;
+        private bool _baseState = true;
+
+        private void DrawEva()
+        {
+            Draw(() => GeneratorSettings.IsEva, v => GeneratorSettings.IsEva = v, v => GeneratorSettings.IsBase = v, "Eva");
+
+            if (_evaState != GeneratorSettings.IsEva)
+            {
+                _evaState = GeneratorSettings.IsEva;
+                _customizableCharacter.CreateSlots();
+            }
+        }
+
+        private void DrawBase()
+        {
+            Draw(() => GeneratorSettings.IsBase, v => GeneratorSettings.IsBase = v, v => GeneratorSettings.IsEva = v, "Base");
+
+            if (_baseState != GeneratorSettings.IsBase)
+            {
+                _baseState = GeneratorSettings.IsBase;
+                _customizableCharacter.CreateSlots();
+            }
+        }
+
+        private static void Draw(Func<bool> getter, Action<bool> setter, Action<bool> oppositeSetter, string labelText)
+        {
+            var isToggled = GUILayout.Toggle(getter(), labelText, GUILayout.Width(Width * .6f));
+            setter(isToggled);
+
+            if (!getter())
+            {
+                oppositeSetter(true);
             }
         }
 
         private void SavePrefab()
         {
-            var characterFbx = AssetDatabase.LoadAssetAtPath<GameObject>(AssetsPath.Fbx);
-            var character = Instantiate(characterFbx, Vector3.zero, Quaternion.identity);
-            foreach (Transform child in character.transform)
+            var character = _customizableCharacter.InstantiateCharacter();
+
+            var availableSlots = character.GetComponentsInChildren<SkinnedMeshRenderer>().ToList();
+            availableSlots.ForEach(s => s.sharedMesh = null);
+
+            var meshes = _customizableCharacter.GetMeshRenderers();
+
+            foreach (var meshInfo in meshes)
             {
-                if (child.TryGetComponent<SkinnedMeshRenderer>(out var meshRenderer))
-                {
-                    var childName = child.name.Split('_').First();
-                    var part = _parts.First(part => childName == part.Type.ToString());
-                    meshRenderer.sharedMesh = part.IsEnabled ? part.SelectedVariant.Mesh : null;
-                    if (meshRenderer.sharedMesh)
-                    {
-                        ConfigureMaterials(meshRenderer, meshRenderer.sharedMesh.name);
-                    }
-                }
+                var availableSlot = availableSlots.First();
+                availableSlots.Remove(availableSlot);
+
+                availableSlot.sharedMesh = meshInfo.mesh;
+                availableSlot.sharedMaterials = meshInfo.materials;
+                availableSlot.localBounds = availableSlot.sharedMesh.bounds;
+                availableSlot.name = meshInfo.mesh.name;
             }
+
+            availableSlots.ForEach(s => DestroyImmediate(s.gameObject));
 
             AddAnimator(character);
+            AddFacePicker(character, _customizableCharacter.Slots.First(s => s.Type == SlotType.Face).GetVariants());
+            AddMovementComponents(character);
 
-            var prefabPath = AssetsPath.SavedCharacters + _prefabPath;
-            Directory.CreateDirectory(prefabPath);
-            var path = AssetDatabase.GenerateUniqueAssetPath($"{prefabPath}/Character.prefab");
+            const string defaultCharacterName = "Character";
+
+            Directory.CreateDirectory(ToolConfig.SavedCharacters);
+            _prefabName = string.IsNullOrEmpty(_prefabName) ? defaultCharacterName : _prefabName;
+            var path = AssetDatabase.GenerateUniqueAssetPath($"{ToolConfig.SavedCharacters}{_prefabName}.prefab");
             PrefabUtility.SaveAsPrefabAsset(character, path);
             DestroyImmediate(character);
-        }
 
-        private static void AddAnimator(GameObject character)
-        {
-            var controller = AssetDatabase.LoadAssetAtPath<AnimatorController>(AssetsPath.AnimationController);
-            var characterAnimator = character.GetComponent<Animator>();
-            characterAnimator.runtimeAnimatorController = controller;
-        }
-
-        private async void Randomize()
-        {
-            foreach (var part in _parts)
+            if (_prefabName == defaultCharacterName)
             {
-                if (Random.value < .5f && part.Type != PartType.Body)
-                {
-                    part.IsEnabled = false;
-                }
-                else
-                {
-                    part.IsEnabled = true;
-                    part.SelectedVariant = part.Variants[Random.Range(0, part.Variants.Count)];
-                }
-            }
-
-            await Task.Delay(1);
-
-            SaveCombination();
-        }
-
-        private void SaveCombination()
-        {
-            var savedCombinations = new List<SavedPart>();
-            foreach (var part in _parts)
-            {
-                var savedCombination = new SavedPart(part.Type, part.IsEnabled, part.VariantIndex);
-                savedCombinations.Add(savedCombination);
-            }
-            _savedCombinations.Add(savedCombinations);
-
-            while (_savedCombinations.Count > 4)
-            {
-                _savedCombinations.RemoveAt(0);
+                _prefabName = string.Empty;
             }
         }
 
-        private void Last()
+        private void AddAnimator(GameObject character)
         {
-            var lastSavedCombination = _savedCombinations.Last();
-            if (IsSame())
+            var controller = AssetDatabase.LoadAssetAtPath<AnimatorController>(ToolConfig.AnimationController);
+            if (!character.TryGetComponent<Animator>(out var animator))
             {
-                _savedCombinations.Remove(lastSavedCombination);
-                lastSavedCombination = _savedCombinations.Last();
+                animator = character.AddComponent<Animator>();
             }
 
-            foreach (var part in _parts)
-            {
-                var savedCombination = lastSavedCombination.Find(c => c.PartType == part.Type);
-
-                part.IsEnabled = savedCombination.IsEnabled;
-                part.SelectVariant(savedCombination.VariantIndex);
-            }
-
-            _savedCombinations.Remove(lastSavedCombination);
+            animator.avatar = _customizableCharacter.AnimationAvatar;
+            animator.runtimeAnimatorController = controller;
+            animator.applyRootMotion = false;
         }
 
-        private bool IsSame()
+        private static void AddFacePicker(GameObject character, Mesh[] variants)
         {
-            var lastSavedCombination = _savedCombinations.Last();
-            foreach (var part in _parts)
-            {
-                var savedCombination = lastSavedCombination.Find(c => c.PartType == part.Type);
+            var facePicker = character.AddComponent<FacePicker>();
+            facePicker.SetFaces(variants);
+        }
 
-                if (part.IsEnabled != savedCombination.IsEnabled ||
-                    part.VariantIndex != savedCombination.VariantIndex)
-                {
-                    return false;
-                }
-            }
+        private static void AddMovementComponents(GameObject character)
+        {
+            AddCharacterController(character);
+            character.AddComponent<CharacterMover>();
+            character.AddComponent<MovePlayerInput>();
+        }
 
-            return true;
+        private static void AddCharacterController(GameObject character)
+        {
+            var characterController = character.AddComponent<CharacterController>();
+
+            var bounds = GetCombinedBounds(character);
+            characterController.center = new Vector3(0, bounds.center.y, 0);
+            characterController.height = bounds.extents.y * 2;
+            characterController.radius = bounds.extents.z * 1.1f;
         }
 
         private void InitializeCamera()
@@ -247,8 +276,8 @@ namespace CharacterCustomization
                 return;
             }
 
-            _cameraPivot = new GameObject("CameraPivot").transform;
-            _cameraPivot.gameObject.hideFlags = HideFlags.HideAndDontSave;
+            var cameraPivot = new GameObject("CameraPivot").transform;
+            cameraPivot.gameObject.hideFlags = HideFlags.HideAndDontSave;
 
             var cameraObject = new GameObject("PreviewCamera")
             {
@@ -262,11 +291,13 @@ namespace CharacterCustomization
             _camera.enabled = false;
             _camera.useOcclusionCulling = false;
             _camera.cameraType = CameraType.Preview;
-            _camera.fieldOfView = 4.5f;
+            _camera.fieldOfView = 3.4f;
             _camera.clearFlags = CameraClearFlags.SolidColor;
-            _camera.transform.SetParent(_cameraPivot);
+            _camera.transform.SetParent(cameraPivot);
+            _camera.cullingMask = 1 << _previewLayer;
 
-            _cameraPivot.Rotate(Vector3.up, 150, Space.Self);
+            cameraPivot.Rotate(Vector3.up, 150, Space.Self);
+            cameraPivot.position += .1f * Vector3.down;
         }
 
         private void CreateRenderTexture()
@@ -276,179 +307,31 @@ namespace CharacterCustomization
                 return;
             }
 
-            _renderTexture = new RenderTexture(300, 300, 30, RenderTextureFormat.ARGB32)
-            {
-                antiAliasing = 8
-            };
+            _renderTexture = new RenderTexture(400, 400, 30, RenderTextureFormat.ARGB32);
         }
 
-        private void DrawMesh()
+        private void DrawCharacter()
         {
             _camera.transform.localPosition = new Vector3(0, 1.1f, -36);
-
-            foreach (var part in Parts.Where(part => part.IsEnabled))
-            {
-                DrawModel(part.SelectedVariant.Mesh);
-            }
-
+            _customizableCharacter.Draw(_previewLayer, _camera);
             _camera.Render();
         }
 
-        private void DrawModel(Mesh mesh)
+        private static Bounds GetCombinedBounds(GameObject parentObject)
         {
-            switch (mesh.name)
+            var renderers = parentObject.GetComponentsInChildren<Renderer>();
+            if (renderers.Length == 0)
             {
-                case "Astronaut_001":
-                    DrawSubmesh(mesh, Material, 0);
-                    DrawSubmesh(mesh, GlassMaterial, 1);
-                    break;
-                case "Sushi_001":
-                    DrawSubmesh(mesh, Material, 0);
-                    DrawSubmesh(mesh, GlassMaterial, 1);
-                    DrawSubmesh(mesh, EmissionMaterial, 2);
-                    break;
-                default:
-                    DrawSubmesh(mesh, Material, 0);
-                    break;
-            }
-        }
-
-        private void DrawSubmesh(Mesh mesh, Material material, int submeshIndex)
-        {
-            Graphics.DrawMesh(mesh, new Vector3(0, -.01f, 0), Quaternion.identity, material, 31, _camera, submeshIndex);
-        }
-
-        private IEnumerable<Part> LoadParts()
-        {
-            var assets = new List<Object>();
-            var subFolders = AssetDatabase.GetSubFolders(AssetsPath.Parts);
-            foreach (var subFolder in subFolders)
-            {
-                assets.AddRange(AssetDatabase.FindAssets("t:mesh", new[] { subFolder })
-                    .Select(AssetDatabase.GUIDToAssetPath)
-                    .Select(AssetDatabase.LoadAllAssetsAtPath)
-                    .SelectMany(assetsOfFbx => assetsOfFbx));
+                return new Bounds(parentObject.transform.position, Vector3.zero);
             }
 
-            var meshes = new List<Mesh>();
-            foreach (var asset in assets)
+            var combinedBounds = renderers[0].bounds;
+            for (var i = 1; i < renderers.Length; i++)
             {
-                if (asset is Mesh m)
-                {
-                    meshes.Add(m);
-                }
+                combinedBounds.Encapsulate(renderers[i].bounds);
             }
 
-            var parts = new List<Part>();
-            var fbxs = AssetDatabase.LoadAllAssetsAtPath(AssetsPath.Fbx);
-            foreach (var fbx in fbxs)
-            {
-                if (fbx is Mesh mesh)
-                {
-                    var partName = mesh.name.Split('_').First();
-
-                    Part part;
-                    if (partName == PartType.Full.ToString())
-                    {
-                        part = GetFullBodyPart();
-                        part.IsEnabled = false;
-                    }
-                    else
-                    {
-                        var variants = meshes.Where(m => m.name.StartsWith(partName)).Select(m => new Variant(m, CreateVariantPreview(m))).ToList();
-                        part = new Part(Enum.Parse<PartType>(partName), variants);
-                    }
-
-                    parts.Add(part);
-                }
-            }
-
-            var sortedParts = _partsOrder.Select(partType => parts.Find(p => p.Type == partType)).ToList();
-
-            return sortedParts;
-        }
-
-        private Part GetFullBodyPart()
-        {
-            var assets = new List<Object>();
-
-            assets.AddRange(AssetDatabase.FindAssets("t:mesh", new[] { AssetsPath.FullBody })
-                .Select(AssetDatabase.GUIDToAssetPath)
-                .Select(AssetDatabase.LoadAllAssetsAtPath)
-                .SelectMany(assetsOfFbx => assetsOfFbx));
-
-            var meshes = new List<Mesh>();
-            foreach (var asset in assets)
-            {
-                if (asset is Mesh m)
-                {
-                    meshes.Add(m);
-                }
-            }
-            var variants = meshes.Select(m => new Variant(m, CreateVariantPreview(m))).ToList();
-            var part = new Part(PartType.Full, variants);
-
-            return part;
-        }
-
-        private GameObject CreateVariantPreview(Mesh mesh)
-        {
-            var variant = new GameObject(mesh.name);
-            variant.AddComponent<MeshFilter>().sharedMesh = mesh;
-            var renderer = variant.AddComponent<MeshRenderer>();
-            ConfigureMaterials(renderer, mesh.name);
-            variant.transform.position = Vector3.one * int.MaxValue;
-            variant.hideFlags = HideFlags.HideAndDontSave;
-
-            return variant;
-        }
-
-        private void ConfigureMaterials(Renderer renderer, string meshName)
-        {
-            switch (meshName)
-            {
-                case "Astronaut_001":
-                    renderer.sharedMaterials = new[] { Material, GlassMaterial };
-                    break;
-                case "Sushi_001":
-                    renderer.sharedMaterials = new[] { Material, GlassMaterial, EmissionMaterial };
-                    break;
-                default:
-                    renderer.sharedMaterial = Material;
-                    break;
-            }
-        }
-
-        private static void FindRoot()
-        {
-            var anchorAssetGuid = AssetDatabase.FindAssets(AssetsPath.BasicCharacterName).First();
-            var anchorAssetPath = AssetDatabase.GUIDToAssetPath(anchorAssetGuid);
-            var pathParts = anchorAssetPath.Split('/');
-            var packTitleParts = AssetsPath.PackTitle.Split('_');
-            var rootFound = false;
-            for (var i = pathParts.Length - 1; i >= 0; i--)
-            {
-                if (rootFound)
-                {
-                    break;
-                }
-
-                foreach (var part in packTitleParts)
-                {
-                    rootFound = false;
-
-                    if (!pathParts[i].Contains(part))
-                    {
-                        pathParts[i] = string.Empty;
-                        break;
-                    }
-
-                    rootFound = true;
-                }
-            }
-
-            var root = string.Join("/", pathParts.Where(p => !string.IsNullOrEmpty(p)).ToArray()) + "/";
-            AssetsPath.SetRoot(root);
+            return combinedBounds;
         }
     }
 }

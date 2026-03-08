@@ -1,0 +1,39 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7781dc1b11e340469965c5026ab4f9e8, type: 3}
+  m_Name: SuitTop
+  m_EditorClassIdentifier: 
+  Type: 5
+  BodyType: 0
+  Gender: 0
+  Variants:
+  - {fileID: 919132149155446097, guid: eadb2e130df40c2499638afa8e208003, type: 3}
+  - {fileID: 919132149155446097, guid: c91c9442fd1c66e4cba75f2d4d3f1ee9, type: 3}
+  - {fileID: 919132149155446097, guid: f868bed46d76ebe44982ef2efe14dec7, type: 3}
+  - {fileID: 919132149155446097, guid: 8f512de6b48ee7c4c939ef46594ea192, type: 3}
+  - {fileID: 919132149155446097, guid: 3330cae6f147f4b47a9f46235523e051, type: 3}
+  - {fileID: 919132149155446097, guid: 5aff7f259f110bf49984d164d9a3c8b5, type: 3}
+  - {fileID: 919132149155446097, guid: 3b5f400ebce81704c9ab34b1c1aaff82, type: 3}
+  - {fileID: 919132149155446097, guid: 8334f07e196a63c4fae6287690810598, type: 3}
+  - {fileID: 919132149155446097, guid: 2f51a68816e6ac449980554a5693eb7b, type: 3}
+  - {fileID: 919132149155446097, guid: 1d933996d21b9444dbcd0ebf3e56da81, type: 3}
+  - {fileID: 919132149155446097, guid: 41958ec77bfdb884a89bdcd2aaf641c2, type: 3}
+  - {fileID: 919132149155446097, guid: 559e20cc39f81024b927db10bf4743bf, type: 3}
+  - {fileID: 919132149155446097, guid: 0a5c0eb4a502133449fc584fc2ab5682, type: 3}
+  - {fileID: 919132149155446097, guid: d7fea1829f6e48b4ab0697f6a7218738, type: 3}
+  - {fileID: 919132149155446097, guid: 6d431633d86e3d745a2e73ff1b2b97ed, type: 3}
+  - {fileID: 919132149155446097, guid: fd33c54f28384cd4cab3df2d49d4dd91, type: 3}
+  - {fileID: 919132149155446097, guid: 58d0ba99e49725447a7d6a7cb1624550, type: 3}
+  - {fileID: 919132149155446097, guid: 68f84d82fee57854f94453899eb0db30, type: 3}
+  - {fileID: 919132149155446097, guid: ea2c58b56b0eef440bc7783bb40a4c56, type: 3}
+  - {fileID: 919132149155446097, guid: 1973a7cbd82aea147ac218df8b6fca7f, type: 3}
+  - {fileID: 919132149155446097, guid: fad20b7648606bc4e8961d9555a56aa4, type: 3}

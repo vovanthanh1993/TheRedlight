@@ -1,0 +1,39 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7781dc1b11e340469965c5026ab4f9e8, type: 3}
+  m_Name: SuitBottom
+  m_EditorClassIdentifier: 
+  Type: 6
+  BodyType: 0
+  Gender: 0
+  Variants:
+  - {fileID: 919132149155446097, guid: 3c297f90d4214084e987c9baf2455f6f, type: 3}
+  - {fileID: 919132149155446097, guid: 613e91591b6b74e418c1a7f1c64979d7, type: 3}
+  - {fileID: 919132149155446097, guid: a06052e19cab3754eba10810cfd99b40, type: 3}
+  - {fileID: 919132149155446097, guid: f6ebb650dbebf2a4d9bcb847a523455c, type: 3}
+  - {fileID: 919132149155446097, guid: dc941802686d1514691ac027d7a2ff2f, type: 3}
+  - {fileID: 919132149155446097, guid: 5bf6cf4e724f5a042bf3041a02abbe0a, type: 3}
+  - {fileID: 919132149155446097, guid: f2461692f68cd6e49b08fc0b76290adb, type: 3}
+  - {fileID: 919132149155446097, guid: 34901b99b87f8b54196b724f57dd5226, type: 3}
+  - {fileID: 919132149155446097, guid: 884289666c724514ca0ead3d793bec91, type: 3}
+  - {fileID: 919132149155446097, guid: e6bb24c5a54225a47a4ab2a0311acaed, type: 3}
+  - {fileID: 919132149155446097, guid: e90c25bf2a41a1c42b49cfbc1a23c97f, type: 3}
+  - {fileID: 919132149155446097, guid: 8da697372d2ec7940bebfb37237df51a, type: 3}
+  - {fileID: 919132149155446097, guid: bc7e547dab99aed46a86640697aa82df, type: 3}
+  - {fileID: 919132149155446097, guid: de0db42420aa15f41996f2d9ce716797, type: 3}
+  - {fileID: 919132149155446097, guid: 6428b0c87a64ee94390c8eb905378def, type: 3}
+  - {fileID: 919132149155446097, guid: 68cdc93699f247f4797857e3ce753916, type: 3}
+  - {fileID: 919132149155446097, guid: 6ffeba2ae244146419f2e4433e13af55, type: 3}
+  - {fileID: 919132149155446097, guid: b9eb643f72e02124b8456b8720141350, type: 3}
+  - {fileID: 919132149155446097, guid: ccf50b26a6292fa4faa8d6db39948be1, type: 3}
+  - {fileID: 919132149155446097, guid: a44aaf6eef7cdb74fb5b9cb51650fd72, type: 3}
+  - {fileID: 919132149155446097, guid: 6b24fd2ee1ff39f4497f6b2daae4af4e, type: 3}
