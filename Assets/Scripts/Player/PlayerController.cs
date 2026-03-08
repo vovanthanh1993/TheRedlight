@@ -307,6 +307,23 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     public void TakeFireballDamage()
     {
+        TakeDamage(true); // true = phát âm thanh nổ
+    }
+    
+    /// <summary>
+    /// Nhận damage từ laser và chết (không phát âm thanh nổ)
+    /// </summary>
+    public void TakeLaserDamage()
+    {
+        TakeDamage(false); // false = không phát âm thanh nổ (đã phát ở laser)
+    }
+    
+    /// <summary>
+    /// Nhận damage và chết (internal method)
+    /// </summary>
+    /// <param name="playExplosionSound">Có phát âm thanh nổ không</param>
+    private void TakeDamage(bool playExplosionSound)
+    {
         // Disable input ngay lập tức để player không thể di chuyển thêm
         canReceiveInput = false;
         
@@ -327,9 +344,9 @@ public class PlayerController : MonoBehaviour
         }
         
         // Chờ death animation xong rồi mới spawn lại
-        StartCoroutine(HandleRedLightDeath());
+        StartCoroutine(HandleRedLightDeath(playExplosionSound));
         
-        Debug.LogWarning("PlayerController: Player bị trúng fireball! Chết và sẽ spawn lại.");
+        Debug.LogWarning($"PlayerController: Player bị trúng damage! Chết và sẽ spawn lại. PlayExplosionSound: {playExplosionSound}");
     }
     
     /// <summary>
@@ -418,9 +435,13 @@ public class PlayerController : MonoBehaviour
     /// <summary>
     /// Xử lý death animation và spawn lại sau khi chết vì Red Light
     /// </summary>
-    private System.Collections.IEnumerator HandleRedLightDeath()
+    private System.Collections.IEnumerator HandleRedLightDeath(bool playExplosionSound = true)
     {
-        AudioManager.Instance.PlayExplosion();
+        // Chỉ phát âm thanh nổ nếu được yêu cầu (fireball), không phát nếu chết bởi laser
+        if (playExplosionSound && AudioManager.Instance != null)
+        {
+            AudioManager.Instance.PlayExplosion();
+        }
         // Đảm bảo player không di chuyển trong lúc animation chết
         // Disable CharacterController để player không bị ảnh hưởng bởi gravity hoặc physics
         if (characterController != null)

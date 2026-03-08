@@ -333,4 +333,8 @@ public class AudioManager : MonoBehaviour
     public void PlayRedLightSound() {
         PlaySound("se_redlight");
     }
+
+    public void PlayLaserHitSound() {
+        PlaySound("se_laser_hit");
+    }
 }
