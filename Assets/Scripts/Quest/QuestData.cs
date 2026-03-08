@@ -16,8 +16,8 @@ public class QuestData : ScriptableObject
     public float timeLimit = 300f;
 
     [Header("Energy Settings")]
-    [Tooltip("Số lượng EnergyItem cần nhặt để hoàn thành level này (0 = không cần Energy)")]
-    public int requiredEnergyItems = 0;
+    [Tooltip("Số điểm EnergyItem cần nhặt để hoàn thành level này (ví dụ: 10 điểm. Nếu mỗi item 2 điểm thì cần 5 items) (0 = không cần Energy)")]
+    public int requiredEnergyPoints = 0;
 
     [Header("Reward List")]
     [Tooltip("Reward cho 1 sao, 2 sao, 3 sao")]

@@ -18,8 +18,8 @@ public class QuestDataGenerator : EditorWindow
     private int endLevel = 20;
     
     // Cấu hình độ khó tăng dần
-    private int baseEnergyItems = 3; // Level 1 cần 3 EnergyItem
-    private int energyItemsIncrement = 2; // Mỗi level tăng thêm 2
+    private int baseEnergyItems = 3; // Level 1 cần 3 điểm EnergyItem
+    private int energyItemsIncrement = 2; // Mỗi level tăng thêm 2 điểm
     
     private float baseTimeLimit = 120f; // Level 1 có 120 giây
     private float timeLimitIncrement = 30f; // Mỗi level tăng thêm 30 giây
@@ -38,9 +38,9 @@ public class QuestDataGenerator : EditorWindow
         endLevel = EditorGUILayout.IntField("End Level", endLevel);
         
         GUILayout.Space(10);
-        GUILayout.Label("Energy Items Settings", EditorStyles.boldLabel);
-        baseEnergyItems = EditorGUILayout.IntField("Base Energy Items (Level 1)", baseEnergyItems);
-        energyItemsIncrement = EditorGUILayout.IntField("Energy Items Increment Per Level", energyItemsIncrement);
+        GUILayout.Label("Energy Points Settings", EditorStyles.boldLabel);
+        baseEnergyItems = EditorGUILayout.IntField("Base Energy Points (Level 1)", baseEnergyItems);
+        energyItemsIncrement = EditorGUILayout.IntField("Energy Points Increment Per Level", energyItemsIncrement);
         
         GUILayout.Space(10);
         GUILayout.Label("Time Limit Settings", EditorStyles.boldLabel);
@@ -66,10 +66,10 @@ public class QuestDataGenerator : EditorWindow
         EditorGUILayout.HelpBox(
             "Script này sẽ tạo quest data cho các level từ " + startLevel + " đến " + endLevel + 
             " với:\n" +
-            "- Energy Items tăng dần\n" +
+            "- Energy Points tăng dần (điểm số, không phải số lượng item)\n" +
             "- Time Limit tăng dần\n" +
             "- Reward tăng dần\n" +
-            "- Không có objectives (chỉ cần nhặt EnergyItem)",
+            "- Không có objectives (chỉ cần nhặt đủ điểm EnergyItem)",
             MessageType.Info
         );
     }
@@ -86,8 +86,8 @@ public class QuestDataGenerator : EditorWindow
             // Không có objectives (chỉ cần nhặt EnergyItem)
             quest.objectives = new QuestObjective[0];
             
-            // Tính số EnergyItem cần nhặt (tăng dần)
-            quest.requiredEnergyItems = baseEnergyItems + (level - 1) * energyItemsIncrement;
+            // Tính số điểm EnergyItem cần nhặt (tăng dần)
+            quest.requiredEnergyPoints = baseEnergyItems + (level - 1) * energyItemsIncrement;
             
             // Tính Time Limit (tăng dần)
             quest.timeLimit = baseTimeLimit + (level - 1) * timeLimitIncrement;

@@ -452,7 +452,7 @@ MonoBehaviour:
   shootEffect1: {fileID: 2671493817644625944}
   shootEffect2: {fileID: 4261491506871992881}
   shootCooldown: 0.5
-  aimRotationSpeed: 360
+  aimRotationSpeed: 720
   debugLog: 0
 --- !u!1 &1963877493559062
 GameObject:

@@ -348,7 +348,7 @@ public class QuestDataJSON
     public float timeFor3Stars;
     public float timeFor2Stars;
     public float timeLimit;
-    public int requiredEnergyItems;
+    public int requiredEnergyPoints;
     public int[] rewardList;
     public int stars = 0; // Kết quả sao đạt được (0 = chưa hoàn thành, 1-3 = số sao)
     public bool isLocked = true; // Trạng thái locked (true = bị khóa, false = đã unlock)
@@ -364,7 +364,7 @@ public class QuestDataJSON
         timeFor3Stars = questData.timeFor3Stars;
         timeFor2Stars = questData.timeFor2Stars;
         timeLimit = questData.timeLimit;
-        requiredEnergyItems = questData.requiredEnergyItems;
+        requiredEnergyPoints = questData.requiredEnergyPoints;
         rewardList = questData.rewardList != null ? questData.rewardList.ToArray() : new int[] { 50, 100, 150 };
         stars = 0; // Mặc định chưa có sao
         isLocked = questId != 1; // Quest đầu tiên không locked, các quest khác locked mặc định
@@ -378,7 +378,7 @@ public class QuestDataJSON
         questData.timeFor3Stars = timeFor3Stars;
         questData.timeFor2Stars = timeFor2Stars;
         questData.timeLimit = timeLimit;
-        questData.requiredEnergyItems = requiredEnergyItems;
+        questData.requiredEnergyPoints = requiredEnergyPoints;
         questData.rewardList = rewardList != null ? new List<int>(rewardList) : new List<int> { 50, 100, 150 };
         return questData;
     }

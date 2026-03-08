@@ -34,6 +34,10 @@ public class EnergyItem : MonoBehaviour
     [Tooltip("Thời gian delay trước khi bắt đầu bay vào Port (giây)")]
     [SerializeField] private float pickupDelay = 0.3f;
     
+    [Header("Score Settings")]
+    [Tooltip("Điểm số khi nhặt được EnergyItem này (1 hoặc 5 điểm)")]
+    [SerializeField] private int score = 1;
+    
     [Header("Visual Settings")]
     [Tooltip("Effect khi nhặt item")]
     [SerializeField] private GameObject pickupEffect;
@@ -43,10 +47,10 @@ public class EnergyItem : MonoBehaviour
     [SerializeField] private bool enableBounceAnimation = true;
     
     [Tooltip("Độ cao nhảy lên (đơn vị)")]
-    [SerializeField] private float bounceHeight = 1.2f;
+    [SerializeField] private float bounceHeight = 8f;
     
-    [Tooltip("Tốc độ animation nhảy (chu kỳ/giây)")]
-    [SerializeField] private float bounceSpeed = 1f;
+    [Tooltip("Tốc độ animation nhảy (chu kỳ/giây) - giá trị nhỏ hơn = chậm hơn")]
+    [SerializeField] private float bounceSpeed = 0.1f;
     
     private bool isCollected = false;
     private bool isFlyingToPort = false;
@@ -161,16 +165,6 @@ public class EnergyItem : MonoBehaviour
         if (pickupEffect != null)
         {
             Instantiate(pickupEffect, transform.position, Quaternion.identity);
-        }
-        
-        // Thông báo cho spawner để spawn energy item mới (truyền vị trí vừa nhặt và item này để remove khỏi list)
-        if (EnergyItemSpawner.Instance != null)
-        {
-            EnergyItemSpawner.Instance.OnEnergyItemCollected(transform.position, gameObject);
-        }
-        else
-        {
-            Debug.LogWarning("EnergyItem: Không tìm thấy EnergyItemSpawner.Instance! Không thể spawn energy item mới.");
         }
         
         // Chuyển collider thành trigger để phát hiện va chạm với Port
@@ -368,10 +362,10 @@ public class EnergyItem : MonoBehaviour
             AudioManager.Instance.PlayCheckpointSound();
         }
 
-        // Thông báo cho LevelManager là đã nhặt được một EnergyItem
+        // Thông báo cho LevelManager là đã nhặt được một EnergyItem với điểm số
         if (LevelManager.Instance != null)
         {
-            LevelManager.Instance.OnEnergyItemArrived();
+            LevelManager.Instance.OnEnergyItemArrived(score);
         }
         
         // Ẩn renderer trước khi destroy để tạo hiệu ứng biến mất mượt hơn

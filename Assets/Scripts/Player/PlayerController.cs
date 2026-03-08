@@ -576,8 +576,8 @@ public class PlayerController : MonoBehaviour
         {
             // Chỉ cho qua màn nếu đã nhặt đủ EnergyItem (nếu level có yêu cầu)
             if (LevelManager.Instance == null || LevelManager.Instance.HasCollectedEnoughEnergy())
-            {
-                ShowVictory();
+        {
+            ShowVictory();
             }
             else
             {

@@ -18,8 +18,8 @@ public class LevelManager : MonoBehaviour
     // Level prefab hiện tại đang được load
     private GameObject currentLevelInstance;
 
-    // Đếm số EnergyItem đã nhặt (đã bay vào Port) trong level hiện tại
-    private int collectedEnergyItems = 0;
+    // Đếm số điểm EnergyItem đã nhặt (đã bay vào Port) trong level hiện tại
+    private int collectedEnergyPoints = 0;
 
     private void Awake()
     {
@@ -108,10 +108,11 @@ public class LevelManager : MonoBehaviour
     /// <summary>
     /// Gọi khi một EnergyItem đã bay vào Port (được nhặt thành công)
     /// </summary>
-    public void OnEnergyItemArrived()
+    /// <param name="points">Điểm số của EnergyItem (1 hoặc 5 điểm)</param>
+    public void OnEnergyItemArrived(int points)
     {
-        collectedEnergyItems++;
-        Debug.Log($"LevelManager: EnergyItem arrived. Collected = {collectedEnergyItems}/{GetRequiredEnergyItemsForCurrentLevel()}");
+        collectedEnergyPoints += points;
+        Debug.Log($"LevelManager: EnergyItem arrived với {points} điểm. Tổng điểm = {collectedEnergyPoints}/{GetRequiredEnergyPointsForCurrentLevel()}");
         
         // Cập nhật PowerBar nếu có
         if (PowerBar.Instance != null)
@@ -121,17 +122,26 @@ public class LevelManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Lấy số lượng EnergyItem đã nhặt trong level hiện tại
+    /// Lấy số điểm EnergyItem đã nhặt trong level hiện tại
     /// </summary>
-    public int GetCollectedEnergyItems()
+    public int GetCollectedEnergyPoints()
     {
-        return collectedEnergyItems;
+        return collectedEnergyPoints;
     }
 
     /// <summary>
-    /// Lấy số lượng EnergyItem cần nhặt cho level hiện tại
+    /// Lấy số điểm EnergyItem cần nhặt cho level hiện tại (tương thích với code cũ)
     /// </summary>
-    public int GetRequiredEnergyItemsForCurrentLevel()
+    [System.Obsolete("Sử dụng GetCollectedEnergyPoints() thay thế")]
+    public int GetCollectedEnergyItems()
+    {
+        return collectedEnergyPoints;
+    }
+
+    /// <summary>
+    /// Lấy số điểm EnergyItem cần nhặt cho level hiện tại
+    /// </summary>
+    public int GetRequiredEnergyPointsForCurrentLevel()
     {
         int currentLevel = 1;
         if (PlayerPrefs.HasKey("CurrentLevel"))
@@ -139,11 +149,11 @@ public class LevelManager : MonoBehaviour
             currentLevel = PlayerPrefs.GetInt("CurrentLevel");
         }
 
-        // Lấy dữ liệu quest từ JSON để đọc cấu hình requiredEnergyItems
+        // Lấy dữ liệu quest từ JSON để đọc cấu hình requiredEnergyPoints
         QuestData quest = QuestDataStorage.LoadQuest(currentLevel);
         if (quest != null)
         {
-            return Mathf.Max(0, quest.requiredEnergyItems);
+            return Mathf.Max(0, quest.requiredEnergyPoints);
         }
 
         // Nếu không có quest hoặc không cấu hình, mặc định = 0 (không yêu cầu EnergyItem)
@@ -151,17 +161,26 @@ public class LevelManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Kiểm tra đã đủ EnergyItem để qua màn chưa
+    /// Lấy số điểm EnergyItem cần nhặt cho level hiện tại (tương thích với code cũ)
+    /// </summary>
+    [System.Obsolete("Sử dụng GetRequiredEnergyPointsForCurrentLevel() thay thế")]
+    public int GetRequiredEnergyItemsForCurrentLevel()
+    {
+        return GetRequiredEnergyPointsForCurrentLevel();
+    }
+
+    /// <summary>
+    /// Kiểm tra đã đủ điểm EnergyItem để qua màn chưa
     /// </summary>
     public bool HasCollectedEnoughEnergy()
     {
-        int required = GetRequiredEnergyItemsForCurrentLevel();
+        int required = GetRequiredEnergyPointsForCurrentLevel();
 
         // Nếu required = 0 thì không yêu cầu collect energy
         if (required <= 0)
             return true;
 
-        return collectedEnergyItems >= required;
+        return collectedEnergyPoints >= required;
     }
 
     /// <summary>
@@ -169,7 +188,7 @@ public class LevelManager : MonoBehaviour
     /// </summary>
     public void ResetEnergyProgress()
     {
-        collectedEnergyItems = 0;
+        collectedEnergyPoints = 0;
         
         // Reset PowerBar nếu có
         if (PowerBar.Instance != null)

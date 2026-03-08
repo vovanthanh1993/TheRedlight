@@ -27,7 +27,7 @@ public class PowerBar : MonoBehaviour
     [SerializeField] private float fillAnimationSpeed = 5f;
     
     private float targetFillAmount = 0f;
-    private int lastCollectedCount = -1;
+    private int lastCollectedPoints = -1;
     private float maxFillWidth = 0f;
     private RectTransform fillRect;
     
@@ -57,11 +57,11 @@ public class PowerBar : MonoBehaviour
             // Kiểm tra xem có thay đổi không
             if (LevelManager.Instance != null)
             {
-                int currentCollected = LevelManager.Instance.GetCollectedEnergyItems();
+                int currentCollected = LevelManager.Instance.GetCollectedEnergyPoints();
                 
-                if (currentCollected != lastCollectedCount)
+                if (currentCollected != lastCollectedPoints)
                 {
-                    lastCollectedCount = currentCollected;
+                    lastCollectedPoints = currentCollected;
                     UpdatePowerBar();
                 }
             }
@@ -134,7 +134,7 @@ public class PowerBar : MonoBehaviour
     }
     
     /// <summary>
-    /// Cập nhật PowerBar dựa trên số EnergyItem đã nhặt
+    /// Cập nhật PowerBar dựa trên số điểm EnergyItem đã nhặt
     /// </summary>
     public void UpdatePowerBar()
     {
@@ -144,8 +144,8 @@ public class PowerBar : MonoBehaviour
             return;
         }
         
-        int collected = LevelManager.Instance.GetCollectedEnergyItems();
-        int required = LevelManager.Instance.GetRequiredEnergyItemsForCurrentLevel();
+        int collected = LevelManager.Instance.GetCollectedEnergyPoints();
+        int required = LevelManager.Instance.GetRequiredEnergyPointsForCurrentLevel();
         
         // Tính % fill (0-1)
         float fillAmount = 0f;
@@ -197,14 +197,14 @@ public class PowerBar : MonoBehaviour
             }
         }
         
-        // Cập nhật text %
+        // Cập nhật text % (hiển thị điểm số thay vì %)
         if (textValue != null)
         {
             int percentage = Mathf.RoundToInt(fillAmount * 100f);
             textValue.text = $"{percentage}%";
         }
         
-        Debug.Log($"PowerBar: Updated - {collected}/{required} ({fillAmount * 100f:F1}%)");
+        Debug.Log($"PowerBar: Updated - {collected}/{required} điểm ({fillAmount * 100f:F1}%)");
     }
     
     /// <summary>
@@ -213,7 +213,7 @@ public class PowerBar : MonoBehaviour
     public void ResetPowerBar()
     {
         targetFillAmount = 0f;
-        lastCollectedCount = -1;
+        lastCollectedPoints = -1;
         
         if (fillImage != null)
         {
