@@ -13291,7 +13291,7 @@ Transform:
   m_GameObject: {fileID: 713349765}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 6.25, y: 0.36, z: 14.33}
+  m_LocalPosition: {x: 2.86, y: 0.36, z: 12.04}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -17711,16 +17711,13 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 966240626}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 52325b84f42160d40b4bacae8f19c6a6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  target: {fileID: 0}
-  useWorldSpace: 1
-  instantFollow: 1
-  positionDamping: {x: 1, y: 1, z: 1}
-  followOffset: {x: 0, y: 0.88, z: -3.3}
+  iPadRotation: {x: 54.33, y: 90, z: 0}
+  iPadPosition: {x: -16.54, y: 29.6, z: 3.3}
 --- !u!114 &966240629
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -31015,7 +31012,7 @@ Transform:
   m_GameObject: {fileID: 1777826168}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -4.35, y: 0.36, z: 13.98}
+  m_LocalPosition: {x: -3.4, y: 0.36, z: 16.58}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

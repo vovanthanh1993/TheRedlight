@@ -1,110 +1,64 @@
 using UnityEngine;
 
 /// <summary>
-/// Camera Controller đơn giản để follow player
-/// Dựa trên Cinemachine Follow settings: Binding Mode World Space, Position Damping (1,1,1), Follow Offset (0,4,-4)
+/// Camera Controller để điều chỉnh camera dựa trên tỉ lệ màn hình
+/// iPad sẽ dùng position và rotation cố định
 /// </summary>
 public class CameraFollowController : MonoBehaviour
 {
-    [Header("Follow Settings")]
-    [Tooltip("Player Transform để follow (nếu null sẽ tự động tìm bằng tag 'Player')")]
-    public Transform target;
+    [Header("iPad Settings")]
+    [Tooltip("Camera rotation khi chạy trên iPad (X=54.33, Y=90, Z=0)")]
+    public Vector3 iPadRotation = new Vector3(54.33f, 90f, 0f);
+    
+    [Tooltip("Camera position khi chạy trên iPad")]
+    public Vector3 iPadPosition = new Vector3(-16.54f, 29.6f, 3.3f);
 
-    [Tooltip("Binding Mode: World Space (true) hoặc Local Space (false)")]
-    public bool useWorldSpace = true;
-
-    [Tooltip("Follow ngay lập tức, không có độ trễ (smooth damping)")]
-    public bool instantFollow = true;
-
-    [Header("Position Damping")]
-    [Tooltip("Damping cho X, Y, Z (chỉ dùng khi instantFollow = false, giá trị càng lớn, camera di chuyển càng mượt)")]
-    public Vector3 positionDamping = new Vector3(1f, 1f, 1f);
-
-    [Header("Follow Offset")]
-    [Tooltip("Offset từ player (X=0, Y=4, Z=-4)")]
-    public Vector3 followOffset = new Vector3(0f, 4f, -4f);
-
-    private Vector3 velocity;
+    private bool isIPad = false;
 
     private void Start()
     {
-        // Tự động tìm player nếu chưa gán
-        FindAndSetPlayer();
+        // Điều chỉnh camera theo tỉ lệ màn hình
+        AdjustForAspectRatio();
+    }
+
+    /// <summary>
+    /// Điều chỉnh camera dựa trên tỉ lệ màn hình
+    /// iPad (tỉ lệ gần 4:3) sẽ dùng position và rotation cố định
+    /// </summary>
+    private void AdjustForAspectRatio()
+    {
+        // Bảo vệ nếu không có camera trong scene
+        if (Camera.main == null)
+            return;
+
+        float aspect = (float)Screen.width / Screen.height; // ví dụ: iPhone ~2.16, iPad ~1.33
+
+        // Nếu màn hình \"vuông\" hơn (aspect nhỏ), coi như tablet/iPad → dùng cấu hình iPad
+        if (aspect < 1.6f)
+        {
+            isIPad = true;
+            
+            // Set camera position và rotation cố định cho iPad
+            transform.position = iPadPosition;
+            transform.rotation = Quaternion.Euler(iPadRotation);
+            
+            Debug.Log($"CameraFollowController: Detected tablet-like aspect ({aspect:F2}), using iPad settings");
+            Debug.Log($"CameraFollowController: Position set to ({iPadPosition.x:F2}, {iPadPosition.y:F2}, {iPadPosition.z:F2})");
+            Debug.Log($"CameraFollowController: Rotation set to ({iPadRotation.x:F2}, {iPadRotation.y:F2}, {iPadRotation.z:F2})");
+        }
+        else
+        {
+            isIPad = false;
+        }
     }
 
     private void LateUpdate()
     {
-        // Nếu chưa có target, tiếp tục tìm player (phòng trường hợp player spawn sau)
-        if (target == null)
+        // Nếu là iPad, giữ nguyên position và rotation cố định
+        if (isIPad)
         {
-            FindAndSetPlayer();
-            return; // Chờ frame tiếp theo nếu vẫn chưa tìm thấy
-        }
-
-        // Tính toán vị trí mong muốn
-        Vector3 desiredPosition;
-        
-        if (useWorldSpace)
-        {
-            // World Space: offset được áp dụng trực tiếp trong world space
-            desiredPosition = target.position + followOffset;
-        }
-        else
-        {
-            // Local Space: offset được xoay theo rotation của target
-            desiredPosition = target.position + target.rotation * followOffset;
-        }
-
-        // Follow ngay lập tức hoặc smooth với damping
-        if (instantFollow)
-        {
-            // Follow ngay lập tức, không có độ trễ
-            transform.position = desiredPosition;
-        }
-        else
-        {
-            // Smooth follow với damping
-            Vector3 currentPosition = transform.position;
-            
-            // Sử dụng Vector3.SmoothDamp với damping riêng cho từng trục
-            float smoothX = positionDamping.x > 0 ? 1f / positionDamping.x : 0.1f;
-            float smoothY = positionDamping.y > 0 ? 1f / positionDamping.y : 0.1f;
-            float smoothZ = positionDamping.z > 0 ? 1f / positionDamping.z : 0.1f;
-
-            // Smooth từng trục riêng biệt
-            float newX = Mathf.SmoothDamp(currentPosition.x, desiredPosition.x, ref velocity.x, smoothX);
-            float newY = Mathf.SmoothDamp(currentPosition.y, desiredPosition.y, ref velocity.y, smoothY);
-            float newZ = Mathf.SmoothDamp(currentPosition.z, desiredPosition.z, ref velocity.z, smoothZ);
-
-            transform.position = new Vector3(newX, newY, newZ);
-        }
-    }
-
-    /// <summary>
-    /// Set target để follow
-    /// </summary>
-    public void SetTarget(Transform newTarget)
-    {
-        target = newTarget;
-        if (target != null)
-        {
-            // Reset velocity khi đổi target
-            velocity = Vector3.zero;
-        }
-    }
-
-    /// <summary>
-    /// Tự động tìm và set target bằng tag "Player"
-    /// </summary>
-    public void FindAndSetPlayer()
-    {
-        if (target != null) return; // Đã có target rồi, không cần tìm lại
-
-        GameObject player = GameObject.FindWithTag("Player");
-        if (player != null)
-        {
-            SetTarget(player.transform);
-            Debug.Log($"CameraFollowController: Đã tự động tìm Player '{player.name}'");
+            transform.position = iPadPosition;
+            transform.rotation = Quaternion.Euler(iPadRotation);
         }
     }
 }

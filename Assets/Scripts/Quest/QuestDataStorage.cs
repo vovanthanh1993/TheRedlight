@@ -5,37 +5,21 @@ using UnityEngine;
 
 /// <summary>
 /// Class để lưu trữ và load QuestData từ JSON
+/// Chỉ sử dụng PersistentDataPath, tự động tạo file quest lần đầu chạy game
 /// </summary>
 public static class QuestDataStorage
 {
     private const string QuestFileName = "quests.json";
     
     /// <summary>
-    /// Đường dẫn đến file quests.json trong StreamingAssets (ưu tiên)
-    /// </summary>
-    private static string StreamingAssetsPath => Path.Combine(Application.streamingAssetsPath, QuestFileName);
-    
-    /// <summary>
-    /// Đường dẫn đến file quests.json trong persistentDataPath (backup)
+    /// Đường dẫn đến file quests.json trong persistentDataPath
     /// </summary>
     private static string PersistentDataPath => Path.Combine(Application.persistentDataPath, QuestFileName);
     
     /// <summary>
-    /// Lấy đường dẫn file quests.json (ưu tiên StreamingAssets, sau đó persistentDataPath)
+    /// Lấy đường dẫn file quests.json (chỉ dùng PersistentDataPath)
     /// </summary>
-    private static string QuestFilePath
-    {
-        get
-        {
-            // Ưu tiên đọc từ StreamingAssets (có thể đọc được trong Editor và Build)
-            if (File.Exists(StreamingAssetsPath))
-            {
-                return StreamingAssetsPath;
-            }
-            // Nếu không có trong StreamingAssets, dùng persistentDataPath
-            return PersistentDataPath;
-        }
-    }
+    private static string QuestFilePath => PersistentDataPath;
     
     /// <summary>
     /// Public property để Editor script có thể truy cập
@@ -43,15 +27,116 @@ public static class QuestDataStorage
     public static string GetQuestFilePath() => QuestFilePath;
     
     /// <summary>
+    /// Tạo file quest mặc định nếu chưa có (50 level với pattern lặp lại 15 level)
+    /// </summary>
+    private static void CreateDefaultQuestFileIfNotExists()
+    {
+        if (File.Exists(QuestFilePath))
+        {
+            return; // File đã tồn tại, không cần tạo
+        }
+        
+        Debug.Log("QuestDataStorage: Không tìm thấy file quest, đang tạo file quest mặc định (50 level)...");
+        
+        // Tạo thư mục nếu chưa có
+        string directory = Path.GetDirectoryName(QuestFilePath);
+        if (!Directory.Exists(directory))
+        {
+            Directory.CreateDirectory(directory);
+        }
+        
+        // Tạo 50 level với pattern lặp lại 15 level
+        Dictionary<int, QuestData> quests = new Dictionary<int, QuestData>();
+        Dictionary<int, QuestData> patternQuests = new Dictionary<int, QuestData>();
+        
+        // Tham số pattern (giống như trong QuestDataGenerator)
+        int patternLength = 15;
+        int baseEnergyItems = 3;
+        int energyItemsIncrement = 1;
+        float baseTimeLimit = 120f;
+        float timeLimitIncrement = 10f;
+        int baseReward1Star = 50;
+        int baseReward2Star = 100;
+        int baseReward3Star = 150;
+        int rewardIncrement = 25;
+        
+        // Tạo pattern cho 15 level đầu
+        for (int patternLevel = 1; patternLevel <= patternLength; patternLevel++)
+        {
+            QuestData quest = ScriptableObject.CreateInstance<QuestData>();
+            quest.questId = patternLevel;
+            quest.objectives = new QuestObjective[0];
+            
+            // Tính số điểm EnergyItem (tăng dần từ baseEnergyItems, tối đa 20)
+            int energyPoints = baseEnergyItems + (patternLevel - 1) * energyItemsIncrement;
+            quest.requiredEnergyPoints = Mathf.Min(energyPoints, 20);
+            
+            // Tính Time Limit (tăng dần)
+            quest.timeLimit = baseTimeLimit + (patternLevel - 1) * timeLimitIncrement;
+            
+            // Tính thời gian để đạt sao
+            quest.timeFor3Stars = quest.timeLimit * 0.4f;
+            quest.timeFor2Stars = quest.timeLimit * 0.7f;
+            
+            // Tính reward (tăng dần theo level)
+            quest.rewardList = new List<int>
+            {
+                baseReward1Star + (patternLevel - 1) * rewardIncrement,
+                baseReward2Star + (patternLevel - 1) * rewardIncrement,
+                baseReward3Star + (patternLevel - 1) * rewardIncrement
+            };
+            
+            patternQuests[patternLevel] = quest;
+        }
+        
+        // Tạo tất cả 50 level bằng cách lặp lại pattern
+        for (int level = 1; level <= 50; level++)
+        {
+            // Tính level trong pattern (1-15)
+            int patternIndex = ((level - 1) % patternLength) + 1;
+            QuestData patternQuest = patternQuests[patternIndex];
+            
+            // Tạo quest mới với ID là level hiện tại
+            QuestData quest = ScriptableObject.CreateInstance<QuestData>();
+            quest.questId = level;
+            quest.objectives = patternQuest.objectives;
+            quest.requiredEnergyPoints = patternQuest.requiredEnergyPoints;
+            quest.timeLimit = patternQuest.timeLimit;
+            quest.timeFor3Stars = patternQuest.timeFor3Stars;
+            quest.timeFor2Stars = patternQuest.timeFor2Stars;
+            
+            // Reward vẫn tăng dần theo level thực tế
+            quest.rewardList = new List<int>
+            {
+                baseReward1Star + (level - 1) * rewardIncrement,
+                baseReward2Star + (level - 1) * rewardIncrement,
+                baseReward3Star + (level - 1) * rewardIncrement
+            };
+            
+            // Set locked status: chỉ level 1 unlock, các level khác locked
+            quests[level] = quest;
+        }
+        
+        // Lưu vào JSON
+        SaveAllQuests(quests);
+        
+        Debug.Log($"QuestDataStorage: Đã tạo file quest mặc định với {quests.Count} level tại {QuestFilePath}");
+    }
+    
+    /// <summary>
     /// Load tất cả quest từ JSON file
+    /// Tự động tạo file quest mặc định nếu chưa có
     /// </summary>
     public static Dictionary<int, QuestData> LoadAllQuests()
     {
+        // Tạo file quest mặc định nếu chưa có
+        CreateDefaultQuestFileIfNotExists();
+        
         Dictionary<int, QuestData> quests = new Dictionary<int, QuestData>();
         
         if (!File.Exists(QuestFilePath))
         {
-            Debug.LogWarning($"QuestDataStorage: Không tìm thấy file {QuestFilePath}!");
+            Debug.LogError($"QuestDataStorage: Không thể tạo file quest tại {QuestFilePath}!");
             return quests;
         }
         
@@ -98,8 +183,7 @@ public static class QuestDataStorage
     }
     
     /// <summary>
-    /// Lưu tất cả quest vào JSON file
-    /// Lưu vào persistentDataPath (có thể ghi được) và copy vào StreamingAssets nếu có thể
+    /// Lưu tất cả quest vào JSON file (chỉ lưu vào PersistentDataPath)
     /// </summary>
     public static void SaveAllQuests(Dictionary<int, QuestData> quests)
     {
@@ -116,24 +200,54 @@ public static class QuestDataStorage
             
             foreach (var quest in quests.Values)
             {
-                questList.quests.Add(new QuestDataJSON(quest));
+                QuestDataJSON questJson = new QuestDataJSON(quest);
+                // Giữ nguyên stars và isLocked từ file cũ nếu có
+                if (File.Exists(QuestFilePath))
+                {
+                    try
+                    {
+                        string oldJson = File.ReadAllText(QuestFilePath);
+                        QuestDataList oldQuestList = JsonUtility.FromJson<QuestDataList>(oldJson);
+                        if (oldQuestList != null && oldQuestList.quests != null)
+                        {
+                            foreach (var oldQuestJson in oldQuestList.quests)
+                            {
+                                if (oldQuestJson.questId == quest.questId)
+                                {
+                                    questJson.stars = oldQuestJson.stars;
+                                    questJson.isLocked = oldQuestJson.isLocked;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    catch
+                    {
+                        // Nếu không đọc được file cũ, dùng giá trị mặc định
+                    }
+                }
+                else
+                {
+                    // Lần đầu tạo file: chỉ level 1 unlock, các level khác locked
+                    questJson.isLocked = quest.questId != 1;
+                    questJson.stars = 0;
+                }
+                
+                questList.quests.Add(questJson);
             }
             
             string json = JsonUtility.ToJson(questList, true);
             
-            // Lưu vào persistentDataPath (luôn có thể ghi)
-            File.WriteAllText(PersistentDataPath, json);
-            Debug.Log($"QuestDataStorage: Đã lưu {quests.Count} quest vào {PersistentDataPath}");
-            
-            // Cố gắng copy vào StreamingAssets nếu có thể (chỉ trong Editor)
-            #if UNITY_EDITOR
-            if (!Directory.Exists(Application.streamingAssetsPath))
+            // Tạo thư mục nếu chưa có
+            string directory = Path.GetDirectoryName(QuestFilePath);
+            if (!Directory.Exists(directory))
             {
-                Directory.CreateDirectory(Application.streamingAssetsPath);
+                Directory.CreateDirectory(directory);
             }
-            File.WriteAllText(StreamingAssetsPath, json);
-            Debug.Log($"QuestDataStorage: Đã copy quest vào StreamingAssets: {StreamingAssetsPath}");
-            #endif
+            
+            // Lưu vào PersistentDataPath
+            File.WriteAllText(QuestFilePath, json);
+            Debug.Log($"QuestDataStorage: Đã lưu {quests.Count} quest vào {QuestFilePath}");
         }
         catch (Exception ex)
         {
@@ -162,6 +276,9 @@ public static class QuestDataStorage
     /// </summary>
     public static void SaveQuestStars(int questId, int stars)
     {
+        // Đảm bảo file tồn tại
+        CreateDefaultQuestFileIfNotExists();
+        
         if (!File.Exists(QuestFilePath))
         {
             Debug.LogWarning($"QuestDataStorage: Không tìm thấy file JSON để lưu stars cho quest {questId}!");
@@ -218,6 +335,9 @@ public static class QuestDataStorage
     /// </summary>
     public static int GetQuestStars(int questId)
     {
+        // Đảm bảo file tồn tại
+        CreateDefaultQuestFileIfNotExists();
+        
         if (!File.Exists(QuestFilePath))
         {
             return 0;
@@ -252,6 +372,9 @@ public static class QuestDataStorage
     /// </summary>
     public static bool IsQuestLocked(int questId)
     {
+        // Đảm bảo file tồn tại
+        CreateDefaultQuestFileIfNotExists();
+        
         if (!File.Exists(QuestFilePath))
         {
             // Quest đầu tiên không locked, các quest khác locked mặc định
@@ -288,6 +411,9 @@ public static class QuestDataStorage
     /// </summary>
     public static void UnlockQuest(int questId)
     {
+        // Đảm bảo file tồn tại
+        CreateDefaultQuestFileIfNotExists();
+        
         if (!File.Exists(QuestFilePath))
         {
             Debug.LogWarning($"QuestDataStorage: Không tìm thấy file JSON để unlock quest {questId}!");
@@ -330,18 +456,18 @@ public static class QuestDataStorage
     /// </summary>
     public static void UnlockAllQuests()
     {
-        // Lấy đường dẫn file hiện tại (ưu tiên StreamingAssets)
-        string filePath = QuestFilePath;
+        // Đảm bảo file tồn tại
+        CreateDefaultQuestFileIfNotExists();
         
-        if (!File.Exists(filePath))
+        if (!File.Exists(QuestFilePath))
         {
-            Debug.LogWarning($"QuestDataStorage: Không tìm thấy file JSON để unlock tất cả quest tại {filePath}!");
+            Debug.LogWarning($"QuestDataStorage: Không tìm thấy file JSON để unlock tất cả quest tại {QuestFilePath}!");
             return;
         }
         
         try
         {
-            string json = File.ReadAllText(filePath);
+            string json = File.ReadAllText(QuestFilePath);
             QuestDataList questList = JsonUtility.FromJson<QuestDataList>(json);
             
             if (questList != null && questList.quests != null)
@@ -361,29 +487,8 @@ public static class QuestDataStorage
                 
                 if (updated)
                 {
-                    // Lưu lại file vào cả hai vị trí để đảm bảo đồng bộ
                     string updatedJson = JsonUtility.ToJson(questList, true);
-                    
-                    // Lưu vào file gốc
-                    File.WriteAllText(filePath, updatedJson);
-                    
-                    // Nếu đọc từ StreamingAssets, cũng lưu vào persistentDataPath
-                    if (filePath == StreamingAssetsPath)
-                    {
-                        File.WriteAllText(PersistentDataPath, updatedJson);
-                    }
-                    // Nếu đọc từ persistentDataPath, cũng copy vào StreamingAssets (nếu có thể)
-                    else if (filePath == PersistentDataPath)
-                    {
-                        #if UNITY_EDITOR
-                        if (!Directory.Exists(Application.streamingAssetsPath))
-                        {
-                            Directory.CreateDirectory(Application.streamingAssetsPath);
-                        }
-                        File.WriteAllText(StreamingAssetsPath, updatedJson);
-                        #endif
-                    }
-                    
+                    File.WriteAllText(QuestFilePath, updatedJson);
                     Debug.Log($"QuestDataStorage: Đã unlock {unlockedCount} quest!");
                 }
                 else
@@ -403,18 +508,18 @@ public static class QuestDataStorage
     /// </summary>
     public static void ResetAllQuests()
     {
-        // Lấy đường dẫn file hiện tại (ưu tiên StreamingAssets)
-        string filePath = QuestFilePath;
+        // Đảm bảo file tồn tại
+        CreateDefaultQuestFileIfNotExists();
         
-        if (!File.Exists(filePath))
+        if (!File.Exists(QuestFilePath))
         {
-            Debug.LogWarning($"QuestDataStorage: Không tìm thấy file JSON để reset quest tại {filePath}!");
+            Debug.LogWarning($"QuestDataStorage: Không tìm thấy file JSON để reset quest tại {QuestFilePath}!");
             return;
         }
         
         try
         {
-            string json = File.ReadAllText(filePath);
+            string json = File.ReadAllText(QuestFilePath);
             QuestDataList questList = JsonUtility.FromJson<QuestDataList>(json);
             
             if (questList != null && questList.quests != null)
@@ -460,29 +565,8 @@ public static class QuestDataStorage
                 
                 if (updated)
                 {
-                    // Lưu lại file vào cả hai vị trí để đảm bảo đồng bộ
                     string updatedJson = JsonUtility.ToJson(questList, true);
-                    
-                    // Lưu vào file gốc
-                    File.WriteAllText(filePath, updatedJson);
-                    
-                    // Nếu đọc từ StreamingAssets, cũng lưu vào persistentDataPath
-                    if (filePath == StreamingAssetsPath)
-                    {
-                        File.WriteAllText(PersistentDataPath, updatedJson);
-                    }
-                    // Nếu đọc từ persistentDataPath, cũng copy vào StreamingAssets (nếu có thể)
-                    else if (filePath == PersistentDataPath)
-                    {
-                        #if UNITY_EDITOR
-                        if (!Directory.Exists(Application.streamingAssetsPath))
-                        {
-                            Directory.CreateDirectory(Application.streamingAssetsPath);
-                        }
-                        File.WriteAllText(StreamingAssetsPath, updatedJson);
-                        #endif
-                    }
-                    
+                    File.WriteAllText(QuestFilePath, updatedJson);
                     Debug.Log($"QuestDataStorage: Đã reset {resetCount} quest về trạng thái ban đầu!");
                 }
                 else
