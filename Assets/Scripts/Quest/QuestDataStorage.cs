@@ -9,7 +9,33 @@ using UnityEngine;
 public static class QuestDataStorage
 {
     private const string QuestFileName = "quests.json";
-    private static string QuestFilePath => Path.Combine(Application.persistentDataPath, QuestFileName);
+    
+    /// <summary>
+    /// Đường dẫn đến file quests.json trong StreamingAssets (ưu tiên)
+    /// </summary>
+    private static string StreamingAssetsPath => Path.Combine(Application.streamingAssetsPath, QuestFileName);
+    
+    /// <summary>
+    /// Đường dẫn đến file quests.json trong persistentDataPath (backup)
+    /// </summary>
+    private static string PersistentDataPath => Path.Combine(Application.persistentDataPath, QuestFileName);
+    
+    /// <summary>
+    /// Lấy đường dẫn file quests.json (ưu tiên StreamingAssets, sau đó persistentDataPath)
+    /// </summary>
+    private static string QuestFilePath
+    {
+        get
+        {
+            // Ưu tiên đọc từ StreamingAssets (có thể đọc được trong Editor và Build)
+            if (File.Exists(StreamingAssetsPath))
+            {
+                return StreamingAssetsPath;
+            }
+            // Nếu không có trong StreamingAssets, dùng persistentDataPath
+            return PersistentDataPath;
+        }
+    }
     
     /// <summary>
     /// Public property để Editor script có thể truy cập
@@ -73,6 +99,7 @@ public static class QuestDataStorage
     
     /// <summary>
     /// Lưu tất cả quest vào JSON file
+    /// Lưu vào persistentDataPath (có thể ghi được) và copy vào StreamingAssets nếu có thể
     /// </summary>
     public static void SaveAllQuests(Dictionary<int, QuestData> quests)
     {
@@ -93,8 +120,20 @@ public static class QuestDataStorage
             }
             
             string json = JsonUtility.ToJson(questList, true);
-            File.WriteAllText(QuestFilePath, json);
-            Debug.Log($"QuestDataStorage: Đã lưu {quests.Count} quest vào {QuestFilePath}");
+            
+            // Lưu vào persistentDataPath (luôn có thể ghi)
+            File.WriteAllText(PersistentDataPath, json);
+            Debug.Log($"QuestDataStorage: Đã lưu {quests.Count} quest vào {PersistentDataPath}");
+            
+            // Cố gắng copy vào StreamingAssets nếu có thể (chỉ trong Editor)
+            #if UNITY_EDITOR
+            if (!Directory.Exists(Application.streamingAssetsPath))
+            {
+                Directory.CreateDirectory(Application.streamingAssetsPath);
+            }
+            File.WriteAllText(StreamingAssetsPath, json);
+            Debug.Log($"QuestDataStorage: Đã copy quest vào StreamingAssets: {StreamingAssetsPath}");
+            #endif
         }
         catch (Exception ex)
         {
@@ -291,15 +330,18 @@ public static class QuestDataStorage
     /// </summary>
     public static void UnlockAllQuests()
     {
-        if (!File.Exists(QuestFilePath))
+        // Lấy đường dẫn file hiện tại (ưu tiên StreamingAssets)
+        string filePath = QuestFilePath;
+        
+        if (!File.Exists(filePath))
         {
-            Debug.LogWarning($"QuestDataStorage: Không tìm thấy file JSON để unlock tất cả quest!");
+            Debug.LogWarning($"QuestDataStorage: Không tìm thấy file JSON để unlock tất cả quest tại {filePath}!");
             return;
         }
         
         try
         {
-            string json = File.ReadAllText(QuestFilePath);
+            string json = File.ReadAllText(filePath);
             QuestDataList questList = JsonUtility.FromJson<QuestDataList>(json);
             
             if (questList != null && questList.quests != null)
@@ -319,9 +361,29 @@ public static class QuestDataStorage
                 
                 if (updated)
                 {
-                    // Lưu lại file
+                    // Lưu lại file vào cả hai vị trí để đảm bảo đồng bộ
                     string updatedJson = JsonUtility.ToJson(questList, true);
-                    File.WriteAllText(QuestFilePath, updatedJson);
+                    
+                    // Lưu vào file gốc
+                    File.WriteAllText(filePath, updatedJson);
+                    
+                    // Nếu đọc từ StreamingAssets, cũng lưu vào persistentDataPath
+                    if (filePath == StreamingAssetsPath)
+                    {
+                        File.WriteAllText(PersistentDataPath, updatedJson);
+                    }
+                    // Nếu đọc từ persistentDataPath, cũng copy vào StreamingAssets (nếu có thể)
+                    else if (filePath == PersistentDataPath)
+                    {
+                        #if UNITY_EDITOR
+                        if (!Directory.Exists(Application.streamingAssetsPath))
+                        {
+                            Directory.CreateDirectory(Application.streamingAssetsPath);
+                        }
+                        File.WriteAllText(StreamingAssetsPath, updatedJson);
+                        #endif
+                    }
+                    
                     Debug.Log($"QuestDataStorage: Đã unlock {unlockedCount} quest!");
                 }
                 else
@@ -333,6 +395,105 @@ public static class QuestDataStorage
         catch (Exception ex)
         {
             Debug.LogError($"QuestDataStorage: Lỗi khi unlock tất cả quest: {ex.Message}");
+        }
+    }
+    
+    /// <summary>
+    /// Reset tất cả quest về trạng thái ban đầu (chỉ level 1 unlock, các level khác locked, stars = 0)
+    /// </summary>
+    public static void ResetAllQuests()
+    {
+        // Lấy đường dẫn file hiện tại (ưu tiên StreamingAssets)
+        string filePath = QuestFilePath;
+        
+        if (!File.Exists(filePath))
+        {
+            Debug.LogWarning($"QuestDataStorage: Không tìm thấy file JSON để reset quest tại {filePath}!");
+            return;
+        }
+        
+        try
+        {
+            string json = File.ReadAllText(filePath);
+            QuestDataList questList = JsonUtility.FromJson<QuestDataList>(json);
+            
+            if (questList != null && questList.quests != null)
+            {
+                bool updated = false;
+                int resetCount = 0;
+                
+                foreach (var questJson in questList.quests)
+                {
+                    bool needsUpdate = false;
+                    
+                    // Reset locked status: chỉ level 1 unlock, các level khác locked
+                    if (questJson.questId == 1)
+                    {
+                        if (questJson.isLocked)
+                        {
+                            questJson.isLocked = false;
+                            needsUpdate = true;
+                        }
+                    }
+                    else
+                    {
+                        if (!questJson.isLocked)
+                        {
+                            questJson.isLocked = true;
+                            needsUpdate = true;
+                        }
+                    }
+                    
+                    // Reset stars về 0
+                    if (questJson.stars != 0)
+                    {
+                        questJson.stars = 0;
+                        needsUpdate = true;
+                    }
+                    
+                    if (needsUpdate)
+                    {
+                        updated = true;
+                        resetCount++;
+                    }
+                }
+                
+                if (updated)
+                {
+                    // Lưu lại file vào cả hai vị trí để đảm bảo đồng bộ
+                    string updatedJson = JsonUtility.ToJson(questList, true);
+                    
+                    // Lưu vào file gốc
+                    File.WriteAllText(filePath, updatedJson);
+                    
+                    // Nếu đọc từ StreamingAssets, cũng lưu vào persistentDataPath
+                    if (filePath == StreamingAssetsPath)
+                    {
+                        File.WriteAllText(PersistentDataPath, updatedJson);
+                    }
+                    // Nếu đọc từ persistentDataPath, cũng copy vào StreamingAssets (nếu có thể)
+                    else if (filePath == PersistentDataPath)
+                    {
+                        #if UNITY_EDITOR
+                        if (!Directory.Exists(Application.streamingAssetsPath))
+                        {
+                            Directory.CreateDirectory(Application.streamingAssetsPath);
+                        }
+                        File.WriteAllText(StreamingAssetsPath, updatedJson);
+                        #endif
+                    }
+                    
+                    Debug.Log($"QuestDataStorage: Đã reset {resetCount} quest về trạng thái ban đầu!");
+                }
+                else
+                {
+                    Debug.Log("QuestDataStorage: Tất cả quest đã ở trạng thái ban đầu rồi!");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError($"QuestDataStorage: Lỗi khi reset tất cả quest: {ex.Message}");
         }
     }
 }

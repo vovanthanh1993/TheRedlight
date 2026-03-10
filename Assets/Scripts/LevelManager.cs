@@ -41,6 +41,7 @@ public class LevelManager : MonoBehaviour
     
     /// <summary>
     /// Load level prefab từ Resources dựa trên level number
+    /// Level 16 sẽ load Level1, Level 17 sẽ load Level2, cứ 15 level là lặp lại
     /// </summary>
     /// <param name="levelNumber">Số level (1, 2, 3, ...)</param>
     /// <returns>GameObject của level đã được instantiate, null nếu không tìm thấy</returns>
@@ -52,8 +53,15 @@ public class LevelManager : MonoBehaviour
         // Reset progress energy cho level mới
         ResetEnergyProgress();
         
+        // Map level number về prefab number theo chu kỳ 15 level
+        // Level 1-15: Level1-Level15
+        // Level 16-30: Level1-Level15 (lặp lại)
+        // Level 31-45: Level1-Level15 (lặp lại)
+        // ...
+        int prefabNumber = ((levelNumber - 1) % 15) + 1;
+        
         // Tên prefab: Level1, Level2, Level3, ...
-        string prefabName = $"Level{levelNumber}";
+        string prefabName = $"Level{prefabNumber}";
         string resourcePath = $"{levelResourcePath}/{prefabName}";
         
         // Load prefab từ Resources
@@ -69,7 +77,7 @@ public class LevelManager : MonoBehaviour
         currentLevelInstance = Instantiate(levelPrefab, levelParent);
         currentLevelInstance.name = prefabName; // Đặt tên rõ ràng
         
-        Debug.Log($"LevelManager: Đã load level {levelNumber} từ '{resourcePath}'");
+        Debug.Log($"LevelManager: Đã load level {levelNumber} (sử dụng prefab {prefabName}) từ '{resourcePath}'");
         
         return currentLevelInstance;
     }

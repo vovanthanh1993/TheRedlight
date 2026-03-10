@@ -99,6 +99,12 @@ public class UIManager : MonoBehaviour
         {
             UnlockAllLevels();
         }
+        
+        // Nhấn F2 để reset tất cả về level 1 (cheat code)
+        if (Input.GetKeyDown(KeyCode.F2))
+        {
+            ResetAllLevels();
+        }
     }
     
     /// <summary>
@@ -152,6 +158,35 @@ public class UIManager : MonoBehaviour
         }
         
         Debug.Log($"Cheat Code F1: {message}");
+    }
+    
+    /// <summary>
+    /// Reset tất cả level về trạng thái ban đầu (cheat code F2)
+    /// </summary>
+    private void ResetAllLevels()
+    {
+        // Reset tất cả quest về trạng thái ban đầu
+        QuestDataStorage.ResetAllQuests();
+        
+        // Refresh SelectLevelPanel nếu đang mở
+        if (selectLevelPanel != null && selectLevelPanel.activeSelf)
+        {
+            SelectLevelPanel selectLevelPanelComponent = selectLevelPanel.GetComponentInChildren<SelectLevelPanel>();
+            if (selectLevelPanelComponent != null)
+            {
+                selectLevelPanelComponent.Refresh();
+            }
+        }
+        
+        // Hiển thị thông báo
+        string message = "Đã reset tất cả về trạng thái ban đầu!\nChỉ level 1 được mở khóa, tất cả stars đã được reset về 0.";
+        
+        if (noticePanel != null)
+        {
+            noticePanel.Init(message);
+        }
+        
+        Debug.Log($"Cheat Code F2: {message}");
     }
 
     public void ShowSettingPanel(bool isShow) {

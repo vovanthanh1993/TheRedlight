@@ -12,6 +12,10 @@ public class SelectLevelPanel : MonoBehaviour
 
     [Range(1, 200)]
     public int totalLevels = 50;
+    
+    [Header("Stage Connector")]
+    [Tooltip("Tự động tạo đường line đứt nét nối các stage")]
+    public bool autoCreateConnectors = true;
 
     private PlayerData playerData;
 
@@ -110,6 +114,29 @@ public class SelectLevelPanel : MonoBehaviour
         LoadPlayerData();
         // Refresh tất cả StageComplete để hiển thị số sao mới nhất
         InitializeAllStageCompletes();
+        
+        // Refresh connectors nếu có
+        if (autoCreateConnectors)
+        {
+            RefreshConnectors();
+        }
+    }
+    
+    /// <summary>
+    /// Refresh lại các connector
+    /// </summary>
+    private void RefreshConnectors()
+    {
+        if (contentRoot == null) return;
+        
+        StageConnector[] connectors = contentRoot.GetComponentsInChildren<StageConnector>(true);
+        foreach (StageConnector connector in connectors)
+        {
+            if (connector != null)
+            {
+                connector.Refresh();
+            }
+        }
     }
 
     private void LoadPlayerData()
@@ -217,6 +244,54 @@ public class SelectLevelPanel : MonoBehaviour
         }
 
         Debug.Log($"SelectLevelPanel: Đã khởi tạo {Mathf.Min(stageCompletes.Count, totalLevels)} StageComplete!");
+        
+        // Tạo đường line đứt nét nối các stage nếu được bật
+        if (autoCreateConnectors)
+        {
+            CreateStageConnectors();
+        }
+    }
+    
+    /// <summary>
+    /// Tạo đường line đứt nét nối các stage trong mỗi LevelPage
+    /// </summary>
+    private void CreateStageConnectors()
+    {
+        if (contentRoot == null) return;
+        
+        // Tìm tất cả LevelPage
+        LevelPage[] levelPages = contentRoot.GetComponentsInChildren<LevelPage>(true);
+        
+        foreach (LevelPage levelPage in levelPages)
+        {
+            if (levelPage == null) continue;
+            
+            // Kiểm tra xem đã có StageConnector chưa
+            StageConnector connector = levelPage.GetComponent<StageConnector>();
+            if (connector == null)
+            {
+                // Tạo StageConnector mới
+                connector = levelPage.gameObject.AddComponent<StageConnector>();
+                connector.stagesParent = levelPage.transform;
+                connector.autoConnectOnStart = false; // Tắt auto để tự control
+                
+                // Đảm bảo RectTransform của connector cover toàn bộ LevelPage
+                RectTransform connectorRect = connector.GetComponent<RectTransform>();
+                RectTransform levelPageRect = levelPage.GetComponent<RectTransform>();
+                if (connectorRect != null && levelPageRect != null)
+                {
+                    connectorRect.anchorMin = Vector2.zero;
+                    connectorRect.anchorMax = Vector2.one;
+                    connectorRect.sizeDelta = Vector2.zero;
+                    connectorRect.anchoredPosition = Vector2.zero;
+                }
+            }
+            
+            // Kết nối các stage
+            connector.ConnectStages();
+        }
+        
+        Debug.Log($"SelectLevelPanel: Đã tạo connector cho {levelPages.Length} LevelPage");
     }
 
     /// <summary>

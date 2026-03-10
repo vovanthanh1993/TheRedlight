@@ -443,15 +443,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   laserVFXPrefab: {fileID: 1062685050423962, guid: 7f38f60a173ec7e4cacc9b7af686d87b, type: 3}
   laserSpawnPoint: {fileID: 596994206557369715}
-  laserLength: 10
-  laserWidth: 0.5
   shootInterval: 2
   laserDuration: 2
   damage: 1
   damageCooldown: 0.5
-  shootEffect: {fileID: 1565131197722278, guid: 9e08e7eea9b67324f9c545b241004b0b, type: 3}
   debugLog: 0
-  showGizmo: 1
 --- !u!1 &3400116030225911218
 GameObject:
   m_ObjectHideFlags: 0
@@ -477,7 +473,7 @@ Transform:
   m_GameObject: {fileID: 3400116030225911218}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.12, y: 0, z: 3.97}
+  m_LocalPosition: {x: 0.12, y: 0, z: 3.9802082}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

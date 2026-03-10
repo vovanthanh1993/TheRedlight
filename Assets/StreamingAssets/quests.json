@@ -1,0 +1,754 @@
+{
+    "quests": [
+        {
+            "questId": 1,
+            "objectives": [],
+            "timeFor3Stars": 48.0,
+            "timeFor2Stars": 84.0,
+            "timeLimit": 120.0,
+            "requiredEnergyPoints": 3,
+            "rewardList": [
+                50,
+                100,
+                150
+            ],
+            "stars": 0,
+            "isLocked": false
+        },
+        {
+            "questId": 2,
+            "objectives": [],
+            "timeFor3Stars": 52.0,
+            "timeFor2Stars": 91.0,
+            "timeLimit": 130.0,
+            "requiredEnergyPoints": 4,
+            "rewardList": [
+                75,
+                125,
+                175
+            ],
+            "stars": 0,
+            "isLocked": false
+        },
+        {
+            "questId": 3,
+            "objectives": [],
+            "timeFor3Stars": 56.0,
+            "timeFor2Stars": 98.0,
+            "timeLimit": 140.0,
+            "requiredEnergyPoints": 5,
+            "rewardList": [
+                100,
+                150,
+                200
+            ],
+            "stars": 0,
+            "isLocked": false
+        },
+        {
+            "questId": 4,
+            "objectives": [],
+            "timeFor3Stars": 60.0,
+            "timeFor2Stars": 105.0,
+            "timeLimit": 150.0,
+            "requiredEnergyPoints": 6,
+            "rewardList": [
+                125,
+                175,
+                225
+            ],
+            "stars": 0,
+            "isLocked": false
+        },
+        {
+            "questId": 5,
+            "objectives": [],
+            "timeFor3Stars": 64.0,
+            "timeFor2Stars": 112.0,
+            "timeLimit": 160.0,
+            "requiredEnergyPoints": 7,
+            "rewardList": [
+                150,
+                200,
+                250
+            ],
+            "stars": 0,
+            "isLocked": false
+        },
+        {
+            "questId": 6,
+            "objectives": [],
+            "timeFor3Stars": 68.0,
+            "timeFor2Stars": 119.0,
+            "timeLimit": 170.0,
+            "requiredEnergyPoints": 8,
+            "rewardList": [
+                175,
+                225,
+                275
+            ],
+            "stars": 0,
+            "isLocked": false
+        },
+        {
+            "questId": 7,
+            "objectives": [],
+            "timeFor3Stars": 72.0,
+            "timeFor2Stars": 126.0,
+            "timeLimit": 180.0,
+            "requiredEnergyPoints": 9,
+            "rewardList": [
+                200,
+                250,
+                300
+            ],
+            "stars": 0,
+            "isLocked": false
+        },
+        {
+            "questId": 8,
+            "objectives": [],
+            "timeFor3Stars": 76.0,
+            "timeFor2Stars": 133.0,
+            "timeLimit": 190.0,
+            "requiredEnergyPoints": 10,
+            "rewardList": [
+                225,
+                275,
+                325
+            ],
+            "stars": 0,
+            "isLocked": false
+        },
+        {
+            "questId": 9,
+            "objectives": [],
+            "timeFor3Stars": 80.0,
+            "timeFor2Stars": 140.0,
+            "timeLimit": 200.0,
+            "requiredEnergyPoints": 11,
+            "rewardList": [
+                250,
+                300,
+                350
+            ],
+            "stars": 0,
+            "isLocked": false
+        },
+        {
+            "questId": 10,
+            "objectives": [],
+            "timeFor3Stars": 84.0,
+            "timeFor2Stars": 147.0,
+            "timeLimit": 210.0,
+            "requiredEnergyPoints": 12,
+            "rewardList": [
+                275,
+                325,
+                375
+            ],
+            "stars": 0,
+            "isLocked": false
+        },
+        {
+            "questId": 11,
+            "objectives": [],
+            "timeFor3Stars": 88.0,
+            "timeFor2Stars": 154.0,
+            "timeLimit": 220.0,
+            "requiredEnergyPoints": 13,
+            "rewardList": [
+                300,
+                350,
+                400
+            ],
+            "stars": 0,
+            "isLocked": false
+        },
+        {
+            "questId": 12,
+            "objectives": [],
+            "timeFor3Stars": 92.0,
+            "timeFor2Stars": 161.0,
+            "timeLimit": 230.0,
+            "requiredEnergyPoints": 14,
+            "rewardList": [
+                325,
+                375,
+                425
+            ],
+            "stars": 0,
+            "isLocked": false
+        },
+        {
+            "questId": 13,
+            "objectives": [],
+            "timeFor3Stars": 96.0,
+            "timeFor2Stars": 168.0,
+            "timeLimit": 240.0,
+            "requiredEnergyPoints": 15,
+            "rewardList": [
+                350,
+                400,
+                450
+            ],
+            "stars": 0,
+            "isLocked": false
+        },
+        {
+            "questId": 14,
+            "objectives": [],
+            "timeFor3Stars": 100.0,
+            "timeFor2Stars": 175.0,
+            "timeLimit": 250.0,
+            "requiredEnergyPoints": 16,
+            "rewardList": [
+                375,
+                425,
+                475
+            ],
+            "stars": 0,
+            "isLocked": false
+        },
+        {
+            "questId": 15,
+            "objectives": [],
+            "timeFor3Stars": 104.0,
+            "timeFor2Stars": 182.0,
+            "timeLimit": 260.0,
+            "requiredEnergyPoints": 17,
+            "rewardList": [
+                400,
+                450,
+                500
+            ],
+            "stars": 0,
+            "isLocked": false
+        },
+        {
+            "questId": 16,
+            "objectives": [],
+            "timeFor3Stars": 48.0,
+            "timeFor2Stars": 84.0,
+            "timeLimit": 120.0,
+            "requiredEnergyPoints": 3,
+            "rewardList": [
+                425,
+                475,
+                525
+            ],
+            "stars": 0,
+            "isLocked": false
+        },
+        {
+            "questId": 17,
+            "objectives": [],
+            "timeFor3Stars": 52.0,
+            "timeFor2Stars": 91.0,
+            "timeLimit": 130.0,
+            "requiredEnergyPoints": 4,
+            "rewardList": [
+                450,
+                500,
+                550
+            ],
+            "stars": 0,
+            "isLocked": false
+        },
+        {
+            "questId": 18,
+            "objectives": [],
+            "timeFor3Stars": 56.0,
+            "timeFor2Stars": 98.0,
+            "timeLimit": 140.0,
+            "requiredEnergyPoints": 5,
+            "rewardList": [
+                475,
+                525,
+                575
+            ],
+            "stars": 0,
+            "isLocked": false
+        },
+        {
+            "questId": 19,
+            "objectives": [],
+            "timeFor3Stars": 60.0,
+            "timeFor2Stars": 105.0,
+            "timeLimit": 150.0,
+            "requiredEnergyPoints": 6,
+            "rewardList": [
+                500,
+                550,
+                600
+            ],
+            "stars": 0,
+            "isLocked": false
+        },
+        {
+            "questId": 20,
+            "objectives": [],
+            "timeFor3Stars": 64.0,
+            "timeFor2Stars": 112.0,
+            "timeLimit": 160.0,
+            "requiredEnergyPoints": 7,
+            "rewardList": [
+                525,
+                575,
+                625
+            ],
+            "stars": 0,
+            "isLocked": false
+        },
+        {
+            "questId": 21,
+            "objectives": [],
+            "timeFor3Stars": 68.0,
+            "timeFor2Stars": 119.0,
+            "timeLimit": 170.0,
+            "requiredEnergyPoints": 8,
+            "rewardList": [
+                550,
+                600,
+                650
+            ],
+            "stars": 0,
+            "isLocked": false
+        },
+        {
+            "questId": 22,
+            "objectives": [],
+            "timeFor3Stars": 72.0,
+            "timeFor2Stars": 126.0,
+            "timeLimit": 180.0,
+            "requiredEnergyPoints": 9,
+            "rewardList": [
+                575,
+                625,
+                675
+            ],
+            "stars": 0,
+            "isLocked": false
+        },
+        {
+            "questId": 23,
+            "objectives": [],
+            "timeFor3Stars": 76.0,
+            "timeFor2Stars": 133.0,
+            "timeLimit": 190.0,
+            "requiredEnergyPoints": 10,
+            "rewardList": [
+                600,
+                650,
+                700
+            ],
+            "stars": 0,
+            "isLocked": false
+        },
+        {
+            "questId": 24,
+            "objectives": [],
+            "timeFor3Stars": 80.0,
+            "timeFor2Stars": 140.0,
+            "timeLimit": 200.0,
+            "requiredEnergyPoints": 11,
+            "rewardList": [
+                625,
+                675,
+                725
+            ],
+            "stars": 0,
+            "isLocked": false
+        },
+        {
+            "questId": 25,
+            "objectives": [],
+            "timeFor3Stars": 84.0,
+            "timeFor2Stars": 147.0,
+            "timeLimit": 210.0,
+            "requiredEnergyPoints": 12,
+            "rewardList": [
+                650,
+                700,
+                750
+            ],
+            "stars": 0,
+            "isLocked": false
+        },
+        {
+            "questId": 26,
+            "objectives": [],
+            "timeFor3Stars": 88.0,
+            "timeFor2Stars": 154.0,
+            "timeLimit": 220.0,
+            "requiredEnergyPoints": 13,
+            "rewardList": [
+                675,
+                725,
+                775
+            ],
+            "stars": 0,
+            "isLocked": false
+        },
+        {
+            "questId": 27,
+            "objectives": [],
+            "timeFor3Stars": 92.0,
+            "timeFor2Stars": 161.0,
+            "timeLimit": 230.0,
+            "requiredEnergyPoints": 14,
+            "rewardList": [
+                700,
+                750,
+                800
+            ],
+            "stars": 0,
+            "isLocked": false
+        },
+        {
+            "questId": 28,
+            "objectives": [],
+            "timeFor3Stars": 96.0,
+            "timeFor2Stars": 168.0,
+            "timeLimit": 240.0,
+            "requiredEnergyPoints": 15,
+            "rewardList": [
+                725,
+                775,
+                825
+            ],
+            "stars": 0,
+            "isLocked": false
+        },
+        {
+            "questId": 29,
+            "objectives": [],
+            "timeFor3Stars": 100.0,
+            "timeFor2Stars": 175.0,
+            "timeLimit": 250.0,
+            "requiredEnergyPoints": 16,
+            "rewardList": [
+                750,
+                800,
+                850
+            ],
+            "stars": 0,
+            "isLocked": false
+        },
+        {
+            "questId": 30,
+            "objectives": [],
+            "timeFor3Stars": 104.0,
+            "timeFor2Stars": 182.0,
+            "timeLimit": 260.0,
+            "requiredEnergyPoints": 17,
+            "rewardList": [
+                775,
+                825,
+                875
+            ],
+            "stars": 0,
+            "isLocked": false
+        },
+        {
+            "questId": 31,
+            "objectives": [],
+            "timeFor3Stars": 48.0,
+            "timeFor2Stars": 84.0,
+            "timeLimit": 120.0,
+            "requiredEnergyPoints": 3,
+            "rewardList": [
+                800,
+                850,
+                900
+            ],
+            "stars": 0,
+            "isLocked": false
+        },
+        {
+            "questId": 32,
+            "objectives": [],
+            "timeFor3Stars": 52.0,
+            "timeFor2Stars": 91.0,
+            "timeLimit": 130.0,
+            "requiredEnergyPoints": 4,
+            "rewardList": [
+                825,
+                875,
+                925
+            ],
+            "stars": 0,
+            "isLocked": false
+        },
+        {
+            "questId": 33,
+            "objectives": [],
+            "timeFor3Stars": 56.0,
+            "timeFor2Stars": 98.0,
+            "timeLimit": 140.0,
+            "requiredEnergyPoints": 5,
+            "rewardList": [
+                850,
+                900,
+                950
+            ],
+            "stars": 0,
+            "isLocked": false
+        },
+        {
+            "questId": 34,
+            "objectives": [],
+            "timeFor3Stars": 60.0,
+            "timeFor2Stars": 105.0,
+            "timeLimit": 150.0,
+            "requiredEnergyPoints": 6,
+            "rewardList": [
+                875,
+                925,
+                975
+            ],
+            "stars": 0,
+            "isLocked": false
+        },
+        {
+            "questId": 35,
+            "objectives": [],
+            "timeFor3Stars": 64.0,
+            "timeFor2Stars": 112.0,
+            "timeLimit": 160.0,
+            "requiredEnergyPoints": 7,
+            "rewardList": [
+                900,
+                950,
+                1000
+            ],
+            "stars": 0,
+            "isLocked": false
+        },
+        {
+            "questId": 36,
+            "objectives": [],
+            "timeFor3Stars": 68.0,
+            "timeFor2Stars": 119.0,
+            "timeLimit": 170.0,
+            "requiredEnergyPoints": 8,
+            "rewardList": [
+                925,
+                975,
+                1025
+            ],
+            "stars": 0,
+            "isLocked": false
+        },
+        {
+            "questId": 37,
+            "objectives": [],
+            "timeFor3Stars": 72.0,
+            "timeFor2Stars": 126.0,
+            "timeLimit": 180.0,
+            "requiredEnergyPoints": 9,
+            "rewardList": [
+                950,
+                1000,
+                1050
+            ],
+            "stars": 0,
+            "isLocked": false
+        },
+        {
+            "questId": 38,
+            "objectives": [],
+            "timeFor3Stars": 76.0,
+            "timeFor2Stars": 133.0,
+            "timeLimit": 190.0,
+            "requiredEnergyPoints": 10,
+            "rewardList": [
+                975,
+                1025,
+                1075
+            ],
+            "stars": 0,
+            "isLocked": false
+        },
+        {
+            "questId": 39,
+            "objectives": [],
+            "timeFor3Stars": 80.0,
+            "timeFor2Stars": 140.0,
+            "timeLimit": 200.0,
+            "requiredEnergyPoints": 11,
+            "rewardList": [
+                1000,
+                1050,
+                1100
+            ],
+            "stars": 0,
+            "isLocked": false
+        },
+        {
+            "questId": 40,
+            "objectives": [],
+            "timeFor3Stars": 84.0,
+            "timeFor2Stars": 147.0,
+            "timeLimit": 210.0,
+            "requiredEnergyPoints": 12,
+            "rewardList": [
+                1025,
+                1075,
+                1125
+            ],
+            "stars": 0,
+            "isLocked": false
+        },
+        {
+            "questId": 41,
+            "objectives": [],
+            "timeFor3Stars": 88.0,
+            "timeFor2Stars": 154.0,
+            "timeLimit": 220.0,
+            "requiredEnergyPoints": 13,
+            "rewardList": [
+                1050,
+                1100,
+                1150
+            ],
+            "stars": 0,
+            "isLocked": false
+        },
+        {
+            "questId": 42,
+            "objectives": [],
+            "timeFor3Stars": 92.0,
+            "timeFor2Stars": 161.0,
+            "timeLimit": 230.0,
+            "requiredEnergyPoints": 14,
+            "rewardList": [
+                1075,
+                1125,
+                1175
+            ],
+            "stars": 0,
+            "isLocked": false
+        },
+        {
+            "questId": 43,
+            "objectives": [],
+            "timeFor3Stars": 96.0,
+            "timeFor2Stars": 168.0,
+            "timeLimit": 240.0,
+            "requiredEnergyPoints": 15,
+            "rewardList": [
+                1100,
+                1150,
+                1200
+            ],
+            "stars": 0,
+            "isLocked": false
+        },
+        {
+            "questId": 44,
+            "objectives": [],
+            "timeFor3Stars": 100.0,
+            "timeFor2Stars": 175.0,
+            "timeLimit": 250.0,
+            "requiredEnergyPoints": 16,
+            "rewardList": [
+                1125,
+                1175,
+                1225
+            ],
+            "stars": 0,
+            "isLocked": false
+        },
+        {
+            "questId": 45,
+            "objectives": [],
+            "timeFor3Stars": 104.0,
+            "timeFor2Stars": 182.0,
+            "timeLimit": 260.0,
+            "requiredEnergyPoints": 17,
+            "rewardList": [
+                1150,
+                1200,
+                1250
+            ],
+            "stars": 0,
+            "isLocked": false
+        },
+        {
+            "questId": 46,
+            "objectives": [],
+            "timeFor3Stars": 48.0,
+            "timeFor2Stars": 84.0,
+            "timeLimit": 120.0,
+            "requiredEnergyPoints": 3,
+            "rewardList": [
+                1175,
+                1225,
+                1275
+            ],
+            "stars": 0,
+            "isLocked": false
+        },
+        {
+            "questId": 47,
+            "objectives": [],
+            "timeFor3Stars": 52.0,
+            "timeFor2Stars": 91.0,
+            "timeLimit": 130.0,
+            "requiredEnergyPoints": 4,
+            "rewardList": [
+                1200,
+                1250,
+                1300
+            ],
+            "stars": 0,
+            "isLocked": false
+        },
+        {
+            "questId": 48,
+            "objectives": [],
+            "timeFor3Stars": 56.0,
+            "timeFor2Stars": 98.0,
+            "timeLimit": 140.0,
+            "requiredEnergyPoints": 5,
+            "rewardList": [
+                1225,
+                1275,
+                1325
+            ],
+            "stars": 0,
+            "isLocked": false
+        },
+        {
+            "questId": 49,
+            "objectives": [],
+            "timeFor3Stars": 60.0,
+            "timeFor2Stars": 105.0,
+            "timeLimit": 150.0,
+            "requiredEnergyPoints": 6,
+            "rewardList": [
+                1250,
+                1300,
+                1350
+            ],
+            "stars": 0,
+            "isLocked": false
+        },
+        {
+            "questId": 50,
+            "objectives": [],
+            "timeFor3Stars": 64.0,
+            "timeFor2Stars": 112.0,
+            "timeLimit": 160.0,
+            "requiredEnergyPoints": 7,
+            "rewardList": [
+                1275,
+                1325,
+                1375
+            ],
+            "stars": 0,
+            "isLocked": false
+        }
+    ]
+}
