@@ -19,6 +19,9 @@ public class PowerBar : MonoBehaviour
     [Tooltip("Text hiển thị % (ví dụ: 50%)")]
     [SerializeField] private TextMeshProUGUI textValue;
     
+    [Tooltip("NoticeText hiển thị khi đạt 100% (ví dụ: 'Đã đủ năng lượng!')")]
+    [SerializeField] private TextMeshProUGUI noticeText;
+    
     [Header("Settings")]
     [Tooltip("Có tự động cập nhật trong Update() không")]
     [SerializeField] private bool autoUpdate = true;
@@ -204,6 +207,13 @@ public class PowerBar : MonoBehaviour
             textValue.text = $"{percentage}%";
         }
         
+        // Hiển thị/ẩn NoticeText khi đạt 100%
+        if (noticeText != null)
+        {
+            // Hiển thị khi đạt 100%, ẩn khi chưa đủ
+            noticeText.gameObject.SetActive(fillAmount >= 1.0f);
+        }
+        
         Debug.Log($"PowerBar: Updated - {collected}/{required} điểm ({fillAmount * 100f:F1}%)");
     }
     
@@ -238,6 +248,12 @@ public class PowerBar : MonoBehaviour
         if (textValue != null)
         {
             textValue.text = "0%";
+        }
+        
+        // Ẩn NoticeText khi reset
+        if (noticeText != null)
+        {
+            noticeText.gameObject.SetActive(false);
         }
     }
     

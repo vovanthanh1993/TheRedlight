@@ -439,8 +439,8 @@ public class PlayerController : MonoBehaviour
     {
         // Chỉ phát âm thanh nổ nếu được yêu cầu (fireball), không phát nếu chết bởi laser
         if (playExplosionSound && AudioManager.Instance != null)
-        {
-            AudioManager.Instance.PlayExplosion();
+    {
+        AudioManager.Instance.PlayExplosion();
         }
         // Đảm bảo player không di chuyển trong lúc animation chết
         // Disable CharacterController để player không bị ảnh hưởng bởi gravity hoặc physics

@@ -12,7 +12,7 @@ public class SelectLevelPanel : MonoBehaviour
 
     [Range(1, 200)]
     public int totalLevels = 50;
-    
+
     [Header("Stage Connector")]
     [Tooltip("Tự động tạo đường line đứt nét nối các stage")]
     public bool autoCreateConnectors = true;

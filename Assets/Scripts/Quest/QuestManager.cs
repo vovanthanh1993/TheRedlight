@@ -138,52 +138,18 @@ public class QuestManager : MonoBehaviour
     }
     
     /// <summary>
-    /// Xử lý khi hết thời gian giới hạn
+    /// Xử lý khi hết thời gian giới hạn - thua ngay lập tức
     /// </summary>
     private void OnTimeLimitReached()
     {
-        // Kiểm tra lại một lần nữa để tránh race condition
-        // (nếu player vừa trigger EndTag và đủ điều kiện thắng trong cùng frame)
+        // Kiểm tra để tránh gọi nhiều lần
         if (questCompleted)
             return;
-        
-        // Kiểm tra xem player có đủ điều kiện thắng không (đã trigger EndTag và đủ EnergyItem)
-        // Nếu có thì ưu tiên thắng, không thua
-        bool canWin = false;
-        if (currentQuest.objectives == null || currentQuest.objectives.Length == 0)
-        {
-            // Quest mới: chỉ cần đủ EnergyItem
-            if (LevelManager.Instance != null && LevelManager.Instance.HasCollectedEnoughEnergy())
-            {
-                canWin = true;
-            }
-        }
-        else
-        {
-            // Quest cũ: kiểm tra objectives
-            bool allObjectivesCompleted = true;
-            foreach (var obj in currentQuest.objectives)
-            {
-                if (!progress.ContainsKey(obj.itemType) || progress[obj.itemType] < obj.requiredAmount)
-                {
-                    allObjectivesCompleted = false;
-                    break;
-                }
-            }
-            canWin = allObjectivesCompleted;
-        }
-        
-        // Nếu đủ điều kiện thắng, không thua (có thể player đã trigger EndTag trong cùng frame)
-        if (canWin)
-        {
-            Debug.Log("QuestManager: Hết thời gian nhưng player đã đủ điều kiện thắng, chờ trigger EndTag...");
-            return;
-        }
         
         // Set questCompleted = true ngay để tránh gọi nhiều lần
         questCompleted = true;
         
-        Debug.LogWarning($"QuestManager: Hết thời gian giới hạn ({currentQuest.timeLimit}s) và chưa đủ điều kiện thắng!");
+        Debug.LogWarning($"QuestManager: Hết thời gian giới hạn ({currentQuest.timeLimit}s) - Thua!");
         
         // Hiển thị lose panel
         if (UIManager.Instance != null && UIManager.Instance.gamePlayPanel != null)
