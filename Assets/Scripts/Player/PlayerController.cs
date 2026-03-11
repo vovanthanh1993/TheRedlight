@@ -581,40 +581,35 @@ public class PlayerController : MonoBehaviour
     #endregion
 
     #region Collision Detection
-
-    /// <summary>
-    /// Xử lý va chạm với trigger (vật thể có tag "EndTag")
-    /// </summary>
-    private void OnTriggerEnter(Collider other)
-    {
-        if (other.CompareTag("EndTag"))
-        {
-            // Chỉ cho qua màn nếu đã nhặt đủ EnergyItem (nếu level có yêu cầu)
-            if (LevelManager.Instance == null || LevelManager.Instance.HasCollectedEnoughEnergy())
-        {
-            ShowVictory();
-            }
-            else
-            {
-                Debug.Log("PlayerController: Chưa nhặt đủ EnergyItem để qua màn!");
-                // TODO: Có thể hiển thị UI thông báo ở đây (popup, text, v.v.)
-            }
-        }
         
-        // Xử lý checkpoint
-        Checkpoint checkpoint = other.GetComponent<Checkpoint>();
-        if (checkpoint != null)
-        {
-            checkpoint.OnPlayerEnter(this);
-        }
-    }
-    
     /// <summary>
     /// Xử lý va chạm với collider khi dùng Character Controller
     /// Character Controller không trigger OnCollisionEnter, cần dùng OnControllerColliderHit
     /// </summary>
     private void OnControllerColliderHit(ControllerColliderHit hit)
     {
+        // Va chạm với cổng kết thúc (EndTag) bằng collider thường (không phải trigger)
+        if (hit.collider != null && hit.collider.CompareTag("EndTag"))
+        {
+            // Chỉ cho qua màn nếu đã nhặt đủ EnergyItem (nếu level có yêu cầu)
+            if (LevelManager.Instance == null || LevelManager.Instance.HasCollectedEnoughEnergy())
+            {
+                ShowVictory();
+            }
+            else
+            {
+                Debug.Log("PlayerController: Chưa nhặt đủ EnergyItem để qua màn (collision)!");
+                // TODO: Có thể hiển thị UI thông báo ở đây (popup, text, v.v.)
+            }
+        }
+
+        // Xử lý checkpoint bằng collider thường
+        Checkpoint checkpoint = hit.collider != null ? hit.collider.GetComponent<Checkpoint>() : null;
+        if (checkpoint != null)
+        {
+            checkpoint.OnPlayerEnter(this);
+        }
+
         // Kiểm tra va chạm với item (item không phải trigger)
         Item item = hit.gameObject.GetComponent<Item>();
         if (item != null && carriedItem == null && !item.IsPickedUp && !item.IsCollected)
