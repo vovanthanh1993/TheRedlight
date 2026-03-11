@@ -772,12 +772,12 @@ public class PlayerController : MonoBehaviour
     }
     
     /// <summary>
-    /// Enable lại input sau 1 giây khi về spawn point
+    /// Enable lại input sau 1.5 giây khi về spawn point
     /// </summary>
     private System.Collections.IEnumerator EnableInputAfterSpawn()
     {
-        // Chờ 1 giây
-        yield return new WaitForSeconds(2f);
+        // Chờ 1.5 giây
+        yield return new WaitForSeconds(1.5f);
         
         // Enable lại input (chỉ nếu không bị disable bởi lý do khác)
         if (!isDisable)
